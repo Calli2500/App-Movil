@@ -1,3 +1,58 @@
 <resources>
     <string name="app_name">Cuicatl</string>
+    <string name="app_title">CUICATL</string>
+    <string name="library_title">Biblioteca</string>
+    <string name="btn_sort">Ordenar</string>
+
+    <!-- Secciones -->
+    <string name="section_mp3">ARCHIVOS MP3</string>
+    <string name="count_mp3">4 canciones</string>
+    <string name="section_other">OTROS FORMATOS</string>
+    <string name="count_other">3 archivos</string>
+
+    <!-- Datos de canción por defecto -->
+    <string name="song_1_title">Viento del Este</string>
+    <string name="song_1_artist">Savia Andina</string>
+
+    <!-- Descripciones de accesibilidad -->
+    <string name="cd_menu">Menú principal</string>
+    <string name="cd_search">Buscar</string>
+    <string name="cd_previous">Canción anterior</string>
+    <string name="cd_play">Reproducir o pausar</string>
+    <string name="cd_next">Siguiente canción</string>
+    <string name="cd_more_options">Más opciones</string>
+    <!-- Textos para la vista Reproductor -->
+    <string name="title_reproduciendo">REPRODUCIENDO</string>
+    <string name="time_current">01:24</string>
+    <string name="time_total">03:42</string>
+
+    <!-- Accesibilidad para controles del reproductor -->
+    <string name="cd_close_player">Cerrar reproductor</string>
+    <string name="cd_shuffle">Reproducción aleatoria</string>
+    <string name="cd_repeat">Repetir canción</string>
+    <string name="cd_volume_low">Volumen bajo</string>
+    <string name="cd_volume_high">Volumen alto</string>
+
+    <!-- Vista Descargar Música -->
+    <string name="title_download_music">Descargar Música</string>
+    <string name="hint_paste_url">Pegar URL aquí...</string>
+    <string name="btn_download_mp3">DESCARGAR COMO MP3</string>
+    <string name="section_recent_downloads">DESCARGAS RECIENTES</string>
+
+    <!-- Item Descarga en progreso -->
+    <string name="download_1_title">cancion descagada1</string>
+    <string name="download_1_percent">65%</string>
+    <string name="download_1_status">Descargando como MP3 • 4.2 MB / 6.5 MB</string>
+
+    <!-- Item Descarga completada -->
+    <string name="download_2_title">cancion descargada2</string>
+    <string name="download_2_badge">LISTO</string>
+    <string name="download_2_status">Completado • MP3 • 5.1 MB</string>
+
+    <!-- Reproductor mini (Karma) -->
+    <string name="song_karma_title">Karma</string>
+    <string name="song_karma_artist">Chico Blanco</string>
+
+    <!-- Accesibilidad -->
+    <string name="cd_paste">Pegar desde el portapapeles</string>
 </resources>
