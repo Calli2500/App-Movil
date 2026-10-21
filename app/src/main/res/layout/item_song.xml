@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="10dp">
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="4dp">
 
-    <!-- Badge de formato sin usar drawables -->
+    <!-- Cuadro MP3 -->
     <TextView
-        android:id="@+id/tvFormatBadge"
-        android:layout_width="38dp"
-        android:layout_height="32dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:background="@color/text_dark"
         android:gravity="center"
         android:text="MP3"
         android:textColor="@color/white"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
+    <!-- Textos Viento del Este / Savia Andina -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
         android:layout_weight="1"
+        android:layout_marginStart="12dp"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/song_1_title"
@@ -37,7 +35,6 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/song_1_artist"
@@ -45,8 +42,8 @@
             android:textSize="12sp" />
     </LinearLayout>
 
+    <!-- Tiempo y Opciones -->
     <TextView
-        android:id="@+id/tvDuration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
@@ -55,10 +52,9 @@
         android:textSize="12sp" />
 
     <ImageView
-        android:id="@+id/btnSongOptions"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:contentDescription="@string/cd_more_options"
-        android:src="@android:drawable/ic_menu_more" />
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/ic_menu_more"
+        android:contentDescription="Opciones" />
 
 </LinearLayout>

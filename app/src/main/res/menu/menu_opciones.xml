@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_inicio" android:title="Inicio" />
+    <item android:id="@+id/nav_descargas" android:title="Descargas" />
+    <item android:id="@+id/nav_reproductor" android:title="Reproductor" />
+</menu>
