@@ -55,4 +55,20 @@
 
     <!-- Accesibilidad -->
     <string name="cd_paste">Pegar desde el portapapeles</string>
+
+    <string name="cd_album_art">Carátula de la canción</string>
+
+    <string name="title_free_music">Música libre</string>
+    <string name="hint_search_music">Buscar canción, artista o género</string>
+    <string name="btn_load_more">CARGAR MÁS</string>
+    <string name="btn_download_track">DESCARGAR</string>
+    <string name="btn_search_free">BUSCAR MÚSICA LIBRE</string>
+    <string name="cd_back">Volver</string>
+    <string name="jamendo_credit">Música y datos de Jamendo</string>
+
+    <string name="title_extract_audio">Extraer audio</string>
+    <string name="btn_pick_video">ELEGIR VIDEO</string>
+    <string name="btn_extract">EXTRAER AUDIO</string>
+    <string name="btn_extract_entry">EXTRAER AUDIO DE UN VIDEO</string>
+    <string name="hint_audio_name">Nombre del audio</string>
 </resources>

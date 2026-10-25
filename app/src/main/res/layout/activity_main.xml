@@ -9,6 +9,7 @@
 
     <!-- EL DISEÑO ORIGINAL -->
     <RelativeLayout
+        android:id="@+id/content_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/bg_mint"
@@ -50,12 +51,14 @@
         </LinearLayout>
 
         <!-- MINI PLAYER -->
+        <!-- MINI PLAYER -->
         <androidx.cardview.widget.CardView
             android:id="@+id/miniPlayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="12dp"
+            android:visibility="gone"
             app:cardBackgroundColor="@color/bg_mint"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp">
@@ -75,26 +78,32 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/tvMiniTitle"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/song_1_title"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:textColor="@color/text_dark"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/tvMiniArtist"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/song_1_artist"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:textColor="#666666"
                             android:textSize="11sp" />
                     </LinearLayout>
 
                     <ImageView
+                        android:id="@+id/btnMiniPrev"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
@@ -102,6 +111,7 @@
                         android:src="@android:drawable/ic_media_previous" />
 
                     <ImageView
+                        android:id="@+id/btnMiniPlay"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:layout_marginEnd="12dp"
@@ -109,6 +119,7 @@
                         android:src="@android:drawable/ic_media_play" />
 
                     <ImageView
+                        android:id="@+id/btnMiniNext"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="@string/cd_next"
@@ -116,11 +127,13 @@
                 </LinearLayout>
 
                 <ProgressBar
+                    android:id="@+id/miniProgress"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="4dp"
                     android:layout_marginTop="8dp"
-                    android:progress="35"
+                    android:max="100"
+                    android:progress="0"
                     android:progressTint="@color/text_dark" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -190,23 +203,13 @@
                         android:textSize="12sp" />
                 </RelativeLayout>
 
+                <!-- CONTENEDOR PARA INYECTAR MP3 DESDE KOTLIN -->
                 <LinearLayout
+                    android:id="@+id/containerMp3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
                     android:orientation="vertical">
-
-                    <include layout="@layout/item_song" />
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44000000" android:layout_marginVertical="4dp" />
-
-                    <include layout="@layout/item_song" />
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44000000" android:layout_marginVertical="4dp" />
-
-                    <include layout="@layout/item_song" />
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44000000" android:layout_marginVertical="4dp" />
-
-                    <include layout="@layout/item_song" />
-
                 </LinearLayout>
 
                 <!-- SECCIÓN OTROS FORMATOS -->
@@ -233,19 +236,13 @@
                         android:textSize="12sp" />
                 </RelativeLayout>
 
+                <!-- CONTENEDOR PARA INYECTAR OTROS FORMATOS DESDE KOTLIN -->
                 <LinearLayout
+                    android:id="@+id/containerOthers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:orientation="vertical">
-
-                    <include layout="@layout/item_song" />
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44000000" android:layout_marginVertical="4dp"/>
-
-                    <include layout="@layout/item_song" />
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44000000" android:layout_marginVertical="4dp"/>
-
-                    <include layout="@layout/item_song" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -259,6 +256,7 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:fitsSystemWindows="true"
         app:menu="@menu/menu_opciones" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
