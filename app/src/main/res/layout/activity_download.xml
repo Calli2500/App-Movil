@@ -8,8 +8,8 @@
     android:layout_height="match_parent"
     tools:context=".DownloadActivity">
 
-    <!-- CONTENIDO PRINCIPAL -->
     <RelativeLayout
+        android:id="@+id/content_root_download"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/bg_mint"
@@ -42,104 +42,23 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/btnSearch"
+            <View
                 android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:contentDescription="@string/cd_search"
-                android:src="@android:drawable/ic_menu_search" />
+                android:layout_height="28dp" />
         </LinearLayout>
 
-        <!-- MINI PLAYER -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/miniPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="@color/bg_mint"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/song_karma_title"
-                            android:textColor="@color/text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/song_karma_artist"
-                            android:textColor="#666666"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="12dp"
-                        android:contentDescription="@string/cd_previous"
-                        android:src="@android:drawable/ic_media_previous" />
-
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginEnd="12dp"
-                        android:contentDescription="@string/cd_play"
-                        android:src="@android:drawable/ic_media_play" />
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_next"
-                        android:src="@android:drawable/ic_media_next" />
-                </LinearLayout>
-
-                <ProgressBar
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="4dp"
-                    android:layout_marginTop="8dp"
-                    android:progress="35"
-                    android:progressTint="@color/text_dark" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- CONTENIDO PRINCIPAL DESLIZABLE -->
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/miniPlayer"
             android:layout_below="@id/topBar"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Título "Descargar Música" -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -149,40 +68,70 @@
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
-                <!-- Campo para Pegar URL -->
+                <!-- Buscador de música libre -->
+                <Button
+                    android:id="@+id/btnSearchFree"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="20dp"
+                    android:backgroundTint="@color/text_dark"
+                    android:text="@string/btn_search_free"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp" />
+
+                <Button
+                    android:id="@+id/btnExtractAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="20dp"
+                    android:backgroundTint="@color/text_dark"
+                    android:text="@string/btn_extract_entry"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp" />
+
+                <!-- Campo URL -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
+                    android:background="#D3F5E7"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="4dp">
 
                     <EditText
+                        android:id="@+id/etUrl"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
                         android:layout_weight="1"
+                        android:autofillHints="url"
                         android:background="@null"
                         android:hint="@string/hint_paste_url"
                         android:inputType="textUri"
+                        android:maxLines="1"
                         android:textColor="@color/text_dark"
-                        android:textColorHint="#888888"
+                        android:textColorHint="#555555"
                         android:textSize="14sp" />
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:id="@+id/btnPaste"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/cd_paste"
-                        android:src="@android:drawable/ic_menu_edit" />
+                        android:padding="8dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        app:tint="@color/text_dark" />
                 </LinearLayout>
 
-                <!-- Botón "DESCARGAR COMO MP3" -->
                 <Button
                     android:id="@+id/btnDownloadMp3"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:layout_marginBottom="28dp"
+                    android:layout_marginBottom="8dp"
                     android:backgroundTint="@color/text_dark"
                     android:text="@string/btn_download_mp3"
                     android:textColor="@color/white"
@@ -190,7 +139,14 @@
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
 
-                <!-- Sección "DESCARGAS RECIENTES" -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:text="Pega un enlace directo a un archivo de audio (.mp3, .m4a, .ogg, .wav…)."
+                    android:textColor="#4A4A4A"
+                    android:textSize="11sp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -200,132 +156,24 @@
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
-                <!-- Tarjeta 1: Descarga en Progreso -->
-                <androidx.cardview.widget.CardView
+                <!-- Aquí se agregan las descargas desde Kotlin -->
+                <LinearLayout
+                    android:id="@+id/containerDownloads"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="@color/bg_mint"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:text="@string/download_1_title"
-                                android:textColor="@color/text_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:text="@string/download_1_percent"
-                                android:textColor="@color/text_dark"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
-                        <ProgressBar
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
-                            android:progress="65"
-                            android:progressTint="@color/text_dark" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/download_1_status"
-                            android:textColor="#666666"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- Tarjeta 2: Descarga Completada -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/bg_mint"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentStart="true"
-                                android:text="@string/download_2_title"
-                                android:textColor="@color/text_dark"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:background="@color/text_dark"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="2dp"
-                                android:text="@string/download_2_badge"
-                                android:textColor="@color/white"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-
-                        <ProgressBar
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
-                            android:progress="100"
-                            android:progressTint="@color/text_dark" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/download_2_status"
-                            android:textColor="#666666"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:orientation="vertical" />
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
     </RelativeLayout>
 
-    <!-- MENÚ LATERAL OCULTO -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view_download"
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:fitsSystemWindows="true"
         app:menu="@menu/menu_opciones" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
