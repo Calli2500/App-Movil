@@ -114,7 +114,7 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
 
     fun showSleepDialog(service: MusicService) {
         val labels = arrayOf(
-            "1 minuto (prueba)", "15 minutos", "30 minutos",
+            "1 minuto", "15 minutos", "30 minutos",
             "45 minutos", "1 hora", "Cancelar temporizador"
         )
         val minutes = intArrayOf(1, 15, 30, 45, 60)

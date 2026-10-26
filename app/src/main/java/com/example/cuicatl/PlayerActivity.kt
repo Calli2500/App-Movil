@@ -23,8 +23,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -78,6 +76,7 @@ class PlayerActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             musicService = (binder as MusicService.LocalBinder).getService()
             musicService?.addListener(serviceListener)
+            musicService?.refreshMeta() // vuelve a leer título/portada (también en la notificación)
             actualizarUI()
         }
 
@@ -116,12 +115,18 @@ class PlayerActivity : AppCompatActivity() {
         btnRepeat.setOnClickListener {
             musicService?.let { it.setLoop(!it.loopEnabled) }
         }
+        findViewById<ImageView>(R.id.btnShuffle).setOnClickListener {
+            musicService?.let { it.setShuffle(!it.shuffleEnabled) }
+        }
 
-        // Velocidad y bucle A-B
+        // Velocidad, bucle A-B y editar canción
         btnSpeed.setOnClickListener { musicService?.let { mostrarVelocidades(it) } }
         btnLoopA.setOnClickListener { marcarA() }
         btnLoopB.setOnClickListener { marcarB() }
         btnClearAB.setOnClickListener { musicService?.clearAB() }
+        findViewById<TextView>(R.id.btnEditInfo).setOnClickListener {
+            musicService?.currentSong?.let { startActivity(EditSongActivity.intentFor(this, it)) }
+        }
 
         // Tres puntos: nombre, imagen, temporizador, bucle
         findViewById<ImageView>(R.id.btnOptions).setOnClickListener { anchor ->
@@ -209,6 +214,7 @@ class PlayerActivity : AppCompatActivity() {
     // El estado vive en el servicio: al volver a la pantalla se vuelve a enlazar y se redibuja todo.
     override fun onStart() {
         super.onStart()
+        lastCoverPath = null
         serviceBound = bindService(
             Intent(this, MusicService::class.java), connection, Context.BIND_AUTO_CREATE
         )
@@ -303,6 +309,7 @@ class PlayerActivity : AppCompatActivity() {
             else android.R.drawable.ic_media_play
         )
         btnRepeat.alpha = if (service.loopEnabled) 1f else 0.4f
+        findViewById<ImageView>(R.id.btnShuffle).alpha = if (service.shuffleEnabled) 1f else 0.4f
         seekBar.max = service.duration
         tvTimeTotal.text = formatTime(service.duration)
 
