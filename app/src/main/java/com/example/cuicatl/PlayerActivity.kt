@@ -48,6 +48,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var btnLoopB: TextView
     private lateinit var btnClearAB: TextView
 
+    private lateinit var btnPlayerFavorite: ImageView
     private var musicService: MusicService? = null
     private var serviceBound = false
     private var userSeeking = false
@@ -85,6 +86,20 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun actualizarIconoFavorito(esFavorita: Boolean) {
+        btnPlayerFavorite.setImageResource(
+            if (esFavorita) {
+                R.drawable.baseline_favorite_24
+            } else {
+                R.drawable.baseline_favorite_border_24
+            }
+        )
+
+        btnPlayerFavorite.contentDescription =
+            if (esFavorita) "Quitar de favoritos"
+            else "Agregar a favoritos"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -107,6 +122,7 @@ class PlayerActivity : AppCompatActivity() {
         btnLoopA = findViewById(R.id.btnLoopA)
         btnLoopB = findViewById(R.id.btnLoopB)
         btnClearAB = findViewById(R.id.btnClearAB)
+        btnPlayerFavorite = findViewById(R.id.btnPlayerFavorite)
 
         // Controles
         btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
@@ -117,6 +133,27 @@ class PlayerActivity : AppCompatActivity() {
         }
         findViewById<ImageView>(R.id.btnShuffle).setOnClickListener {
             musicService?.let { it.setShuffle(!it.shuffleEnabled) }
+        }
+        // Favoritos
+        btnPlayerFavorite.setOnClickListener {
+            val song = musicService?.currentSong
+
+            if (song != null) {
+                val ahoraEsFavorita = FavoritesManager.alternarFavorito(
+                    this,
+                    song
+                )
+
+                actualizarIconoFavorito(ahoraEsFavorita)
+
+                val mensaje = if (ahoraEsFavorita) {
+                    "Agregada a favoritos"
+                } else {
+                    "Eliminada de favoritos"
+                }
+
+                Snackbar.make(root, mensaje, Snackbar.LENGTH_SHORT).show()
+            }
         }
 
         // Velocidad, bucle A-B y editar canción
@@ -137,6 +174,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
         }
+
 
         // Barra de progreso
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -177,6 +215,10 @@ class PlayerActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_inicio -> {
                     startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                }
+                R.id.nav_favoritos -> {
+                    startActivity(Intent(this, FavoritesActivity::class.java))
                     finish()
                 }
                 R.id.nav_descargas -> {
@@ -304,6 +346,9 @@ class PlayerActivity : AppCompatActivity() {
 
         tvTitle.text = SongStore.displayTitle(this, song)
         tvArtist.text = song.artist
+        // Actualizar estado del corazón
+        val esFavorita = FavoritesManager.esFavorita(this, song)
+        actualizarIconoFavorito(esFavorita)
         btnPlayPause.setImageResource(
             if (service.isPlaying) android.R.drawable.ic_media_pause
             else android.R.drawable.ic_media_play

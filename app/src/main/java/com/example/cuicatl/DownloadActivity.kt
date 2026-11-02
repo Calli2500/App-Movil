@@ -57,6 +57,10 @@ class DownloadActivity : AppCompatActivity() {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 }
+                R.id.nav_favoritos -> {
+                    startActivity(Intent(this, FavoritesActivity::class.java))
+                    finish()
+                }
                 R.id.nav_reproductor -> {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     finish()
