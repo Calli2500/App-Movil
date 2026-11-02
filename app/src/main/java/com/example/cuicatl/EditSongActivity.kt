@@ -33,6 +33,7 @@ class EditSongActivity : AppCompatActivity() {
 
     private lateinit var song: Song
     private lateinit var etTitle: EditText
+    private lateinit var etArtist: EditText
     private lateinit var ivCover: ImageView
     private var pickedImage: Uri? = null
 
@@ -57,7 +58,7 @@ class EditSongActivity : AppCompatActivity() {
         setContentView(R.layout.activity_edit_song)
         findViewById<android.view.View>(R.id.content_root_edit).applySystemBarInsets()
 
-        // getExtra: recibimos la canción que viene del reproductor
+        // getExtra: recibimos la canción que viene del reproductor o de la lista
         val path = intent.getStringExtra(EXTRA_PATH)
         if (path == null) {
             finish()
@@ -70,22 +71,24 @@ class EditSongActivity : AppCompatActivity() {
         )
 
         etTitle = findViewById(R.id.etTitle)
+        etArtist = findViewById(R.id.etArtist)
         ivCover = findViewById(R.id.ivEditCover)
-        findViewById<TextView>(R.id.tvOriginalTitle).text = "Título original: ${song.originalTitle}"
+        findViewById<TextView>(R.id.tvOriginalTitle).text =
+            "Título original: ${song.originalTitle}\nArtista original: ${song.artist}"
 
         if (savedInstanceState == null) {
             etTitle.setText(SongStore.displayTitle(this, song))
+            etArtist.setText(SongStore.displayArtist(this, song))
         }
         pickedImage = savedInstanceState?.getString(STATE_IMAGE)?.let { Uri.parse(it) }
         mostrarPortada()
 
         findViewById<Button>(R.id.btnPickImage).setOnClickListener { pickImage.launch("image/*") }
         findViewById<Button>(R.id.btnContinue).setOnClickListener { continuar() }
+        findViewById<Button>(R.id.btnCancelEdit).setOnClickListener { salir() }
 
         // Reemplazo moderno de onBackPressed()
-        onBackPressedDispatcher.addCallback(this) {
-            if (hayCambios()) confirmarSalida() else finish()
-        }
+        onBackPressedDispatcher.addCallback(this) { salir() }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -94,7 +97,14 @@ class EditSongActivity : AppCompatActivity() {
     }
 
     private fun hayCambios(): Boolean =
-        etTitle.text.toString().trim() != SongStore.displayTitle(this, song) || pickedImage != null
+        etTitle.text.toString().trim() != SongStore.displayTitle(this, song) ||
+                etArtist.text.toString().trim() != SongStore.displayArtist(this, song) ||
+                pickedImage != null
+
+    // Botón CANCELAR y botón atrás: misma lógica
+    private fun salir() {
+        if (hayCambios()) confirmarSalida() else finish()
+    }
 
     private fun confirmarSalida() {
         AlertDialog.Builder(this)
@@ -111,8 +121,9 @@ class EditSongActivity : AppCompatActivity() {
             etTitle.error = "Escribe un título"
             return
         }
+        val artist = etArtist.text.toString().trim()
         // putExtra: mandamos lo capturado a la pantalla de confirmación
-        confirmar.launch(ConfirmSongActivity.intentFor(this, song, title, pickedImage))
+        confirmar.launch(ConfirmSongActivity.intentFor(this, song, title, artist, pickedImage))
     }
 
     private fun mostrarPortada() {

@@ -112,8 +112,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        optionsHelper = SongOptionsHelper(this)
-
+        optionsHelper = SongOptionsHelper(this) { song -> musicService?.removeSong(song.path) }
         // Orden guardado
         val guardado = getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_ORDEN, 0)
         orden = Orden.values().getOrElse(guardado) { Orden.NOMBRE_AZ }
@@ -282,7 +281,7 @@ class MainActivity : AppCompatActivity() {
         Orden.NOMBRE_ZA -> songs.sortedByDescending { SongStore.displayTitle(this, it).lowercase() }
         Orden.RECIENTES -> songs.sortedByDescending { dateAdded[it.path] ?: 0L }
         Orden.ARTISTA -> songs.sortedWith(
-            compareBy({ it.artist.lowercase() }, { SongStore.displayTitle(this, it).lowercase() })
+            compareBy({ SongStore.displayArtist(this, it).lowercase() }, { SongStore.displayTitle(this, it).lowercase() })
         )
     }
 
@@ -291,7 +290,7 @@ class MainActivity : AppCompatActivity() {
         val q = consulta.lowercase()
         return SongStore.displayTitle(this, song).lowercase().contains(q) ||
                 song.originalTitle.lowercase().contains(q) ||
-                song.artist.lowercase().contains(q)
+                SongStore.displayArtist(this, song).lowercase().contains(q)
     }
 
     // ---------- MENSAJES ----------
@@ -323,7 +322,7 @@ class MainActivity : AppCompatActivity() {
         }
         mini.visibility = View.VISIBLE
         findViewById<TextView>(R.id.tvMiniTitle).text = SongStore.displayTitle(this, song)
-        findViewById<TextView>(R.id.tvMiniArtist).text = song.artist
+        findViewById<TextView>(R.id.tvMiniArtist).text = SongStore.displayArtist(this, song)
         findViewById<ImageView>(R.id.btnMiniPlay).setImageResource(
             if (service.isPlaying) android.R.drawable.ic_media_pause
             else android.R.drawable.ic_media_play
@@ -468,7 +467,7 @@ class MainActivity : AppCompatActivity() {
             val tvFormat = songView.findViewById<TextView>(R.id.tvSongFormat)
 
             tvTitle.text = SongStore.displayTitle(this, song)
-            tvArtist.text = song.artist
+            tvArtist.text = SongStore.displayArtist(this, song)
             tvFormat.text = formato
 
             // Tocar la canción: manda la lista (como se ve en pantalla) al servicio y abre el reproductor
@@ -486,7 +485,7 @@ class MainActivity : AppCompatActivity() {
             // Los 3 puntos de cada canción
             songView.findViewById<View>(R.id.btnSongOptions)?.setOnClickListener { anchor ->
                 optionsHelper.showSongMenu(anchor, song) {
-                    mostrarLista() // el título pudo cambiar, y con él el orden
+                    cargarCancionesLocales() // el título pudo cambiar o la canción se eliminó
                     actualizarMiniPlayer()
                 }
             }

@@ -53,9 +53,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Título de la canción"
-            android:imeOptions="actionDone"
+            android:imeOptions="actionNext"
             android:importantForAutofill="no"
             android:inputType="textCapSentences"
+            android:maxLines="1"
+            android:textColor="@color/text_dark" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Artista"
+            android:textColor="@color/text_dark"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Artista (vacío = el original)"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="no"
+            android:inputType="textCapWords"
             android:maxLines="1"
             android:textColor="@color/text_dark" />
 
@@ -76,5 +95,14 @@
             android:backgroundTint="@color/text_dark"
             android:text="CONTINUAR"
             android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnCancelEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#D3F5E7"
+            android:text="CANCELAR"
+            android:textColor="@color/text_dark" />
     </LinearLayout>
 </ScrollView>

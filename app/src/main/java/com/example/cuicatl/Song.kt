@@ -62,6 +62,28 @@ object SongStore {
         prefs(c).edit().putString("img_${song.path}", file.absolutePath).apply()
     }
 
+    // ---- Artista personalizado ----
+    fun displayArtist(c: Context, song: Song): String =
+        prefs(c).getString("artist_${song.path}", null)?.takeIf { it.isNotBlank() }
+            ?: song.artist
+
+    fun setCustomArtist(c: Context, song: Song, name: String) {
+        val editor = prefs(c).edit()
+        if (name.isBlank()) editor.remove("artist_${song.path}")
+        else editor.putString("artist_${song.path}", name.trim())
+        editor.apply()
+    }
+
+    /** Borra todo lo guardado de una canción (al eliminarla). */
+    fun forget(c: Context, song: Song) {
+        prefs(c).getString("img_${song.path}", null)?.let { File(it).delete() }
+        prefs(c).edit()
+            .remove("name_${song.path}")
+            .remove("img_${song.path}")
+            .remove("artist_${song.path}")
+            .apply()
+    }
+
     /** Imagen personalizada; si no hay, la carátula incrustada en el MP3; si no, null. */
     fun loadCover(c: Context, song: Song): Bitmap? {
         prefs(c).getString("img_${song.path}", null)?.let { p ->

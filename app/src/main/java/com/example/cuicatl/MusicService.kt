@@ -127,7 +127,7 @@ class MusicService : Service() {
         return NotificationCompat.Builder(this, AppNotifications.CHANNEL_PLAYER)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle(SongStore.displayTitle(this, song))
-            .setContentText(song.artist)
+            .setContentText(SongStore.displayArtist(this, song))
             .setLargeIcon(coverBitmap)
             .setContentIntent(open)
             .setOnlyAlertOnce(true)
@@ -159,6 +159,28 @@ class MusicService : Service() {
     fun refreshMeta() {
         coverPath = null
         updateNotification()
+    }
+
+    /** Quita una canción eliminada de la cola; si era la que sonaba, pasa a la siguiente. */
+    fun removeSong(path: String) {
+        val current = currentSong
+        val newQueue = queue.filter { it.path != path }
+        originalQueue = originalQueue.filter { it.path != path }
+        if (newQueue.size == queue.size) return
+
+        if (current?.path == path) {
+            if (newQueue.isEmpty()) {
+                stopMusic()
+                return
+            }
+            queue = newQueue
+            currentIndex = currentIndex.coerceAtMost(newQueue.lastIndex)
+            startCurrent()
+        } else {
+            queue = newQueue
+            currentIndex = newQueue.indexOfFirst { it.path == current?.path }.coerceAtLeast(0)
+            notifyChanged()
+        }
     }
 
     // ---------- Reproducción ----------
