@@ -79,6 +79,12 @@
                     android:orientation="vertical"
                     android:padding="12dp">
 
+                    <VideoView
+                        android:id="@+id/vvPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginBottom="12dp" />
+
                     <TextView
                         android:id="@+id/tvVideoName"
                         android:layout_width="match_parent"

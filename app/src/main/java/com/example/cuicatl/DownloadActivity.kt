@@ -65,6 +65,7 @@ class DownloadActivity : AppCompatActivity() {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     finish()
                 }
+                R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true

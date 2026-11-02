@@ -155,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
+                R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
             true
         }

@@ -26,6 +26,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
+import android.widget.MediaController
+import android.widget.VideoView
 
 class ExtractAudioActivity : AppCompatActivity() {
 
@@ -42,6 +44,8 @@ class ExtractAudioActivity : AppCompatActivity() {
     private lateinit var btnExtract: Button
     private lateinit var progressBar: ProgressBar
     private lateinit var tvStatus: TextView
+
+    private lateinit var vvPreview: VideoView
 
     private var musicService: MusicService? = null
     private var serviceBound = false
@@ -81,6 +85,16 @@ class ExtractAudioActivity : AppCompatActivity() {
         btnExtract = findViewById(R.id.btnExtract)
         progressBar = findViewById(R.id.pbExtract)
         tvStatus = findViewById(R.id.tvExtractStatus)
+        vvPreview = findViewById(R.id.vvPreview)
+        val controles = MediaController(this)
+        controles.setAnchorView(vvPreview)
+        vvPreview.setMediaController(controles)
+        vvPreview.setOnPreparedListener { vvPreview.seekTo(1) }   // muestra el primer cuadro
+        vvPreview.setOnErrorListener { _, _, _ ->
+            // Si el video no se puede mostrar, se oculta la vista previa; la extracción sigue disponible
+            vvPreview.visibility = View.GONE
+            true
+        }
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<Button>(R.id.btnPickVideo).setOnClickListener {
@@ -101,6 +115,7 @@ class ExtractAudioActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        vvPreview.pause()
         if (serviceBound) {
             unbindService(connection)
             serviceBound = false
@@ -110,6 +125,7 @@ class ExtractAudioActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        vvPreview.stopPlayback()
         if (isFinishing) cancelled = true
     }
 
@@ -138,6 +154,8 @@ class ExtractAudioActivity : AppCompatActivity() {
         } else "Video seleccionado"
         etOutputName.setText(nombre.substringBeforeLast('.', nombre))
         group.visibility = View.VISIBLE
+        vvPreview.visibility = View.VISIBLE
+        vvPreview.setVideoURI(uri)
         progressBar.visibility = View.GONE
         tvStatus.text = ""
     }
@@ -171,9 +189,10 @@ class ExtractAudioActivity : AppCompatActivity() {
         val nombre = etOutputName.text.toString().trim().ifBlank { "audio" }
 
         working = true
+        vvPreview.pause()
         btnExtract.isEnabled = false
         progressBar.visibility = View.VISIBLE
-        progressBar.progress = 0
+        progressBar.isIndeterminate = true
         tvStatus.text = "Extrayendo audio…"
 
         Thread {
@@ -185,6 +204,7 @@ class ExtractAudioActivity : AppCompatActivity() {
                     isCancelled = { cancelled },
                     onProgress = { pct ->
                         ui.post {
+                            progressBar.isIndeterminate = false
                             progressBar.progress = pct
                             tvStatus.text = "Extrayendo audio… $pct%"
                         }
