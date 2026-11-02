@@ -123,6 +123,13 @@
                         android:layout_height="24dp"
                         android:contentDescription="@string/cd_next"
                         android:src="@android:drawable/ic_media_next" />
+                    <ImageView
+                        android:id="@+id/btnMiniClose"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="12dp"
+                        android:contentDescription="Cerrar reproductor"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel" />
                 </LinearLayout>
 
                 <ProgressBar

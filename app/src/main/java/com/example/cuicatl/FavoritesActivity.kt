@@ -247,7 +247,7 @@ class FavoritesActivity : AppCompatActivity() {
 
             // Mostrar corazón activo
             btnFavorite.setImageResource(
-                R.drawable.baseline_favorite_24
+                R.drawable.baseline_favorite_border_24
             )
 
             btnFavorite.contentDescription = "Quitar de favoritos"

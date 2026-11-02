@@ -139,6 +139,11 @@ class MusicService : Service() {
             .addAction(playPauseIcon, playPauseText, actionIntent(ACTION_TOGGLE, 2))
             .addAction(android.R.drawable.ic_media_next, "Siguiente", actionIntent(ACTION_NEXT, 3))
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cerrar", actionIntent(ACTION_CLOSE, 4))
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setShowActionsInCompactView(0, 1, 2) // anterior, pausa/play, siguiente
+            )
+            .setDeleteIntent(actionIntent(ACTION_CLOSE, 5)) // deslizar para cerrar
             .build()
     }
 

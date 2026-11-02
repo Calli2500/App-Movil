@@ -186,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.btnMiniPrev).setOnClickListener { musicService?.previous() }
         findViewById<ImageView>(R.id.btnMiniPlay).setOnClickListener { musicService?.togglePlayPause() }
         findViewById<ImageView>(R.id.btnMiniNext).setOnClickListener { musicService?.next() }
+        findViewById<ImageView>(R.id.btnMiniClose).setOnClickListener { musicService?.stopMusic() }
 
         // Si ya hay permiso, la lista se carga en onResume; si no, se pide aquí
         if (!tienePermisoAudio()) {
