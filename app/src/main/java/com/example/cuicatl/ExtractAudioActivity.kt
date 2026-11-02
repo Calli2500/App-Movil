@@ -194,6 +194,7 @@ class ExtractAudioActivity : AppCompatActivity() {
                 // Nombre y portada (un cuadro del video) para la biblioteca
                 val song = Song(path, nombre, "Cuicatl")
                 SongStore.setCustomTitle(this@ExtractAudioActivity, song, nombre)
+                SongStore.setCustomArtist(this@ExtractAudioActivity, song, song.artist)
                 AudioExtractor.videoFrame(this@ExtractAudioActivity, uri)?.let {
                     SongStore.saveBitmap(this@ExtractAudioActivity, song, it)
                 }

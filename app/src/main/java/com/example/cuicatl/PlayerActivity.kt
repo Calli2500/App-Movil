@@ -108,7 +108,7 @@ class PlayerActivity : AppCompatActivity() {
         root = findViewById(R.id.content_root_player)
         root.applySystemBarInsets()
 
-        optionsHelper = SongOptionsHelper(this)
+        optionsHelper = SongOptionsHelper(this) { song -> musicService?.removeSong(song.path) }
 
         tvTitle = findViewById(R.id.tvPlayerSongTitle)
         tvArtist = findViewById(R.id.tvPlayerArtist)
@@ -311,7 +311,7 @@ class PlayerActivity : AppCompatActivity() {
                     Snackbar.LENGTH_LONG
                 )
                     .setAction("QUITAR") { s.clearAB() }
-                    .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
+                    .setActionTextColor(ContextCompat.getColor(this, R.color.text_dark))
                     .show()
         }
     }
@@ -344,12 +344,12 @@ class PlayerActivity : AppCompatActivity() {
         }
         hadSong = true
 
-        tvTitle.text = SongStore.displayTitle(this, song)
-        tvArtist.text = song.artist
-        // Actualizar estado del corazón
-        val esFavorita = FavoritesManager.esFavorita(this, song)
-        actualizarIconoFavorito(esFavorita)
-        btnPlayPause.setImageResource(
+           tvTitle.text = SongStore.displayTitle(this, song)
+           tvArtist.text = SongStore.displayArtist(this, song)
+           // Actualizar estado del corazón
+           val esFavorita = FavoritesManager.esFavorita(this, song)
+           actualizarIconoFavorito(esFavorita)
+           btnPlayPause.setImageResource(
             if (service.isPlaying) android.R.drawable.ic_media_pause
             else android.R.drawable.ic_media_play
         )

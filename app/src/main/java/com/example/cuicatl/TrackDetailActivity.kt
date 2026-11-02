@@ -154,6 +154,7 @@ class TrackDetailActivity : AppCompatActivity() {
                 // Nombre original y portada de Jamendo para la biblioteca
                 val song = Song(path, name, artist)
                 SongStore.setCustomTitle(this@TrackDetailActivity, song, name)
+                SongStore.setCustomArtist(this@TrackDetailActivity, song, artist)
                 ImageLoader.loadBlocking(imageUrl)?.let {
                     SongStore.saveBitmap(this@TrackDetailActivity, song, it)
                 }
@@ -181,7 +182,7 @@ class TrackDetailActivity : AppCompatActivity() {
                 )
                 startActivity(i)
             }
-            .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
+            .setActionTextColor(ContextCompat.getColor(this, R.color.text_dark))
             .show()
     }
 

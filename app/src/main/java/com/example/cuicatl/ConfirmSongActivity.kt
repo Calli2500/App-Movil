@@ -21,13 +21,17 @@ class ConfirmSongActivity : AppCompatActivity() {
         private const val EXTRA_ORIGINAL = "original"
         private const val EXTRA_ARTIST = "artist"
         private const val EXTRA_NEW_TITLE = "new_title"
+        private const val EXTRA_NEW_ARTIST = "new_artist"
 
-        fun intentFor(context: Context, song: Song, newTitle: String, image: Uri?): Intent {
+        fun intentFor(
+            context: Context, song: Song, newTitle: String, newArtist: String, image: Uri?
+        ): Intent {
             val i = Intent(context, ConfirmSongActivity::class.java)
                 .putExtra(EXTRA_PATH, song.path)
                 .putExtra(EXTRA_ORIGINAL, song.originalTitle)
                 .putExtra(EXTRA_ARTIST, song.artist)
                 .putExtra(EXTRA_NEW_TITLE, newTitle)
+                .putExtra(EXTRA_NEW_ARTIST, newArtist)
             if (image != null) {
                 // La imagen viaja como data y se le da permiso de lectura a la otra pantalla
                 i.data = image
@@ -39,6 +43,7 @@ class ConfirmSongActivity : AppCompatActivity() {
 
     private lateinit var song: Song
     private lateinit var newTitle: String
+    private lateinit var newArtist: String
     private var image: Uri? = null
     private lateinit var btnAccept: Button
 
@@ -61,11 +66,15 @@ class ConfirmSongActivity : AppCompatActivity() {
             intent.getStringExtra(EXTRA_ARTIST) ?: ""
         )
         newTitle = title
+        newArtist = intent.getStringExtra(EXTRA_NEW_ARTIST) ?: ""
         image = intent.data
 
         findViewById<TextView>(R.id.tvConfirmTitle).text = newTitle
         findViewById<TextView>(R.id.tvConfirmBefore).text =
             "Antes: ${SongStore.displayTitle(this, song)}"
+        // Artista vacío = se usa el original
+        findViewById<TextView>(R.id.tvConfirmArtist).text =
+            if (newArtist.isBlank()) "${song.artist} (original)" else newArtist
         mostrarPortada()
 
         btnAccept = findViewById(R.id.btnAccept)
@@ -81,6 +90,7 @@ class ConfirmSongActivity : AppCompatActivity() {
         // Guardar la imagen puede tardar un poco: se hace fuera del hilo principal
         Thread {
             SongStore.setCustomTitle(this, song, newTitle)
+            SongStore.setCustomArtist(this, song, newArtist)
             val ok = if (uri != null) SongStore.saveImage(this, song, uri) else true
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread

@@ -1,33 +1,75 @@
 package com.example.cuicatl
 
+import android.app.Activity
+import android.app.RecoverableSecurityException
+import android.content.ContentUris
+import android.content.IntentSender
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import com.google.android.material.snackbar.Snackbar
+import java.io.File
 
-class SongOptionsHelper(private val activity: AppCompatActivity) {
+/**
+ * onDeleted se llama cuando una canción ya se eliminó (sirve para sacarla de la cola del reproductor).
+ */
+class SongOptionsHelper(
+    private val activity: AppCompatActivity,
+    private val onDeleted: (Song) -> Unit = {}
+) {
 
     private var pendingSong: Song? = null
     private var pendingDone: (() -> Unit)? = null
 
-    // Debe registrarse al crear la Activity (por eso se construye en onCreate)
+    private var deleteSong: Song? = null
+    private var deleteUri: Uri? = null
+    private var deleteDone: (() -> Unit)? = null
+
+    // Los launchers deben registrarse al crear la Activity (por eso se construye en onCreate)
     private val picker = activity.registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
         val song = pendingSong
         if (uri != null && song != null) {
             val ok = SongStore.saveImage(activity, song, uri)
-            Toast.makeText(
-                activity,
-                if (ok) "Imagen guardada" else "No se pudo guardar la imagen",
-                Toast.LENGTH_SHORT
-            ).show()
+            mensaje(if (ok) "Imagen guardada" else "No se pudo guardar la imagen")
             if (ok) pendingDone?.invoke()
+        }
+    }
+
+    // Respuesta del sistema cuando pide permiso para borrar un archivo que no es de la app
+    private val deleteLauncher = activity.registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        val song = deleteSong ?: return@registerForActivityResult
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                // En Android 10 se concede el permiso y hay que repetir el borrado
+                val uri = deleteUri
+                val filas = try {
+                    if (uri != null) activity.contentResolver.delete(uri, null, null) else 0
+                } catch (e: Exception) {
+                    0
+                }
+                if (filas > 0) terminarBorrado(song) else borrarArchivo(song)
+            } else {
+                // En Android 11 o superior el sistema ya lo borró
+                terminarBorrado(song)
+            }
+        } else {
+            mensaje("No se eliminó la canción")
+            limpiarBorrado()
         }
     }
 
@@ -36,10 +78,14 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
         PopupMenu(activity, anchor).apply {
             menu.add(0, 1, 0, "Cambiar nombre")
             menu.add(0, 2, 1, "Cambiar imagen")
+            menu.add(0, 3, 2, "Editar canción…")
+            menu.add(0, 4, 3, "Eliminar canción")
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     1 -> rename(song, onChanged)
                     2 -> pickImage(song, onChanged)
+                    3 -> activity.startActivity(EditSongActivity.intentFor(activity, song))
+                    4 -> confirmarEliminar(song, onChanged)
                 }
                 true
             }
@@ -61,6 +107,7 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
                 isCheckable = true
                 isChecked = service.loopEnabled
             }
+            menu.add(0, 5, 4, "Eliminar canción")
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     1 -> rename(song, onChanged)
@@ -70,6 +117,7 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
                         service.setLoop(!service.loopEnabled)
                         onChanged()
                     }
+                    5 -> confirmarEliminar(song, onChanged)
                 }
                 true
             }
@@ -77,9 +125,11 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
         }
     }
 
+    // ---------- Cambiar nombre (con aviso al salir sin guardar) ----------
     fun rename(song: Song, onDone: () -> Unit) {
+        val actual = SongStore.displayTitle(activity, song)
         val input = EditText(activity).apply {
-            setText(SongStore.displayTitle(activity, song))
+            setText(actual)
             setSelectAllOnFocus(true)
             setSingleLine()
         }
@@ -94,7 +144,7 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
                 )
             )
         }
-        AlertDialog.Builder(activity)
+        val dialog = AlertDialog.Builder(activity)
             .setTitle("Cambiar nombre")
             .setMessage("Déjalo vacío para volver al nombre original")
             .setView(container)
@@ -103,7 +153,34 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
                 onDone()
             }
             .setNegativeButton("Cancelar", null)
-            .show()
+            .create()
+
+        fun intentarSalir() {
+            if (input.text.toString().trim() != actual) {
+                AlertDialog.Builder(activity)
+                    .setTitle("¿Descartar cambios?")
+                    .setMessage("Si sales ahora, se perderá el nombre que escribiste.")
+                    .setPositiveButton("Descartar") { _, _ -> dialog.dismiss() }
+                    .setNegativeButton("Seguir editando", null)
+                    .show()
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        dialog.setCanceledOnTouchOutside(false)
+        // Botón atrás: también pasa por la confirmación
+        dialog.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                intentarSalir()
+                true
+            } else false
+        }
+        // El botón Cancelar no cierra solo: primero revisa si hay cambios
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { intentarSalir() }
+        }
+        dialog.show()
     }
 
     fun pickImage(song: Song, onDone: () -> Unit) {
@@ -114,7 +191,7 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
 
     fun showSleepDialog(service: MusicService) {
         val labels = arrayOf(
-            "1 minuto", "15 minutos", "30 minutos",
+            "1 minuto (prueba)", "15 minutos", "30 minutos",
             "45 minutos", "1 hora", "Cancelar temporizador"
         )
         val minutes = intArrayOf(1, 15, 30, 45, 60)
@@ -123,12 +200,110 @@ class SongOptionsHelper(private val activity: AppCompatActivity) {
             .setItems(labels) { _, which ->
                 if (which < minutes.size) {
                     service.setSleepTimer(minutes[which])
-                    Toast.makeText(activity, "Se apagará en ${labels[which]}", Toast.LENGTH_SHORT).show()
+                    mensaje("Se apagará en ${labels[which]}")
                 } else {
                     service.cancelSleepTimer()
-                    Toast.makeText(activity, "Temporizador cancelado", Toast.LENGTH_SHORT).show()
+                    mensaje("Temporizador cancelado")
                 }
             }
             .show()
+    }
+
+    // ---------- Eliminar canción ----------
+    fun confirmarEliminar(song: Song, onDone: () -> Unit) {
+        AlertDialog.Builder(activity)
+            .setTitle("¿Eliminar canción?")
+            .setMessage(
+                "\"${SongStore.displayTitle(activity, song)}\" se borrará de tu teléfono " +
+                        "y no se puede deshacer."
+            )
+            .setPositiveButton("Eliminar") { _, _ -> eliminar(song, onDone) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun eliminar(song: Song, onDone: () -> Unit) {
+        deleteSong = song
+        deleteDone = onDone
+        val uri = uriDe(song)
+        deleteUri = uri
+        if (uri == null) {
+            borrarArchivo(song)
+            return
+        }
+        try {
+            // Los archivos creados por la app (descargas y extracciones) se borran directo
+            val filas = activity.contentResolver.delete(uri, null, null)
+            if (filas > 0) terminarBorrado(song) else borrarArchivo(song)
+        } catch (e: SecurityException) {
+            // Archivos de otras apps: el sistema pide permiso al usuario
+            val sender = intentSenderPara(uri, e)
+            if (sender != null) {
+                deleteLauncher.launch(IntentSenderRequest.Builder(sender).build())
+            } else {
+                borrarArchivo(song)
+            }
+        }
+    }
+
+    private fun intentSenderPara(uri: Uri, e: SecurityException): IntentSender? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return MediaStore.createDeleteRequest(activity.contentResolver, listOf(uri)).intentSender
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && e is RecoverableSecurityException) {
+            return e.userAction.actionIntent.intentSender
+        }
+        return null
+    }
+
+    // Último recurso (Android 9 o menos, o archivos que no están en MediaStore)
+    private fun borrarArchivo(song: Song) {
+        val ok = try {
+            File(song.path).delete()
+        } catch (e: Exception) {
+            false
+        }
+        if (ok) {
+            MediaScannerConnection.scanFile(activity, arrayOf(song.path), null, null)
+            terminarBorrado(song)
+        } else {
+            mensaje("No se pudo eliminar este archivo")
+            limpiarBorrado()
+        }
+    }
+
+    private fun terminarBorrado(song: Song) {
+        SongStore.forget(activity, song)   // olvida título, artista e imagen guardados
+        onDeleted(song)                    // la saca de la cola del reproductor
+        val done = deleteDone
+        limpiarBorrado()
+        mensaje("Canción eliminada")
+        done?.invoke()                     // la pantalla vuelve a leer la lista
+    }
+
+    private fun limpiarBorrado() {
+        deleteSong = null
+        deleteUri = null
+        deleteDone = null
+    }
+
+    private fun uriDe(song: Song): Uri? {
+        val base = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        activity.contentResolver.query(
+            base,
+            arrayOf(MediaStore.Audio.Media._ID),
+            "${MediaStore.Audio.Media.DATA} = ?",
+            arrayOf(song.path),
+            null
+        )?.use {
+            if (it.moveToFirst()) return ContentUris.withAppendedId(base, it.getLong(0))
+        }
+        return null
+    }
+
+    private fun mensaje(texto: String) {
+        Snackbar.make(
+            activity.findViewById(android.R.id.content), texto, Snackbar.LENGTH_SHORT
+        ).show()
     }
 }
