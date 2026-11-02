@@ -2,7 +2,7 @@ package com.example.cuicatl
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
+import android.util.Log
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -109,7 +109,7 @@ class ExtractAudioActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         serviceBound = bindService(
-            Intent(this, MusicService::class.java), connection, Context.BIND_AUTO_CREATE
+            Intent(this, MusicService::class.java), connection, BIND_AUTO_CREATE
         )
     }
 
@@ -145,7 +145,7 @@ class ExtractAudioActivity : AppCompatActivity() {
                 r.release()
             }
         } catch (e: Exception) {
-            // sin duración, se muestra igual
+            Log.w("CuicatlExtract", "No se pudo leer la duración del video", e)
         }
 
         tvVideoName.text = nombre
@@ -193,7 +193,7 @@ class ExtractAudioActivity : AppCompatActivity() {
         btnExtract.isEnabled = false
         progressBar.visibility = View.VISIBLE
         progressBar.isIndeterminate = true
-        tvStatus.text = "Extrayendo audio…"
+        tvStatus.text = getString(R.string.extract_converting)
 
         Thread {
             try {
@@ -206,7 +206,7 @@ class ExtractAudioActivity : AppCompatActivity() {
                         ui.post {
                             progressBar.isIndeterminate = false
                             progressBar.progress = pct
-                            tvStatus.text = "Extrayendo audio… $pct%"
+                            tvStatus.text = getString(R.string.extract_converting_pct, pct)
                         }
                     }
                 )
@@ -221,7 +221,7 @@ class ExtractAudioActivity : AppCompatActivity() {
 
                 ui.post { terminado(song) }
             } catch (e: AudioExtractor.CancelledException) {
-                // la pantalla se cerró: no hay nada que mostrar
+                Log.d("CuicatlExtract", "Extracción cancelada", e)
             } catch (e: Exception) {
                 ui.post { if (!isDestroyed) fallo(e) }
             }
@@ -236,7 +236,7 @@ class ExtractAudioActivity : AppCompatActivity() {
         }
         btnExtract.isEnabled = true
         progressBar.visibility = View.GONE
-        tvStatus.text = "Guardado en Música/Cuicatl"
+        tvStatus.text = getString(R.string.extract_saved)
 
         AppNotifications.notifyExtractionDone(this, song.originalTitle)
 

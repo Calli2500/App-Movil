@@ -24,6 +24,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.util.Log
 
 /**
  * onDeleted se llama cuando una canción ya se eliminó (sirve para sacarla de la cola del reproductor).
@@ -64,6 +65,7 @@ class SongOptionsHelper(
                 val filas = try {
                     if (uri != null) activity.contentResolver.delete(uri, null, null) else 0
                 } catch (e: Exception) {
+                    Log.w("CuicatlDelete", "No se pudo borrar por MediaStore", e)
                     0
                 }
                 if (filas > 0) terminarBorrado(song) else borrarArchivo(song)
@@ -303,6 +305,7 @@ class SongOptionsHelper(
         val ok = try {
             File(song.path).delete()
         } catch (e: Exception) {
+                Log.w("CuicatlDelete", "No se pudo borrar el archivo", e)
             false
         }
         if (ok) {
@@ -316,6 +319,7 @@ class SongOptionsHelper(
 
     private fun terminarBorrado(song: Song) {
         SongStore.forget(activity, song)   // olvida título, artista e imagen guardados
+        FavoritesManager.quitar(activity, song)   // la saca de favoritos si estaba
         onDeleted(song)                    // la saca de la cola del reproductor
         val done = deleteDone
         limpiarBorrado()

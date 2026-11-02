@@ -1,11 +1,9 @@
 package com.example.cuicatl
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.Rect
 import android.media.AudioManager
 import android.os.Bundle
@@ -22,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
@@ -193,7 +192,7 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         // Volumen del sistema
-        val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val audio = getSystemService(AudioManager::class.java)
         val seekVolume = findViewById<SeekBar>(R.id.seekBarVolume)
         seekVolume.max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         seekVolume.progress = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -259,7 +258,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onStart()
         lastCoverPath = null
         serviceBound = bindService(
-            Intent(this, MusicService::class.java), connection, Context.BIND_AUTO_CREATE
+            Intent(this, MusicService::class.java), connection, BIND_AUTO_CREATE
         )
         uiHandler.post(progressRunnable)
     }
@@ -323,7 +322,7 @@ class PlayerActivity : AppCompatActivity() {
             tv.setBackgroundColor(oscuro)
             tv.setTextColor(ContextCompat.getColor(this, R.color.white))
         } else {
-            tv.setBackgroundColor(Color.parseColor("#D3F5E7"))
+            tv.setBackgroundColor("#D3F5E7".toColorInt())
             tv.setTextColor(oscuro)
         }
     }
@@ -338,19 +337,19 @@ class PlayerActivity : AppCompatActivity() {
             if (hadSong) {
                 finish()
             } else {
-                tvTitle.text = "Sin reproducción"
+                tvTitle.text = getString(R.string.player_idle)
                 tvArtist.text = ""
             }
             return
         }
         hadSong = true
 
-           tvTitle.text = SongStore.displayTitle(this, song)
-           tvArtist.text = SongStore.displayArtist(this, song)
-           // Actualizar estado del corazón
-           val esFavorita = FavoritesManager.esFavorita(this, song)
-           actualizarIconoFavorito(esFavorita)
-           btnPlayPause.setImageResource(
+        tvTitle.text = SongStore.displayTitle(this, song)
+        tvArtist.text = SongStore.displayArtist(this, song)
+        // Actualizar estado del corazón
+        val esFavorita = FavoritesManager.esFavorita(this, song)
+        actualizarIconoFavorito(esFavorita)
+        btnPlayPause.setImageResource(
             if (service.isPlaying) android.R.drawable.ic_media_pause
             else android.R.drawable.ic_media_play
         )

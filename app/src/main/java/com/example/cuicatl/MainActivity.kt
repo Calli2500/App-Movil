@@ -2,7 +2,6 @@ package com.example.cuicatl
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -33,9 +32,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -47,7 +50,6 @@ class MainActivity : AppCompatActivity() {
         const val REQ_AUDIO = 100
         const val PREFS = "library_prefs"
         const val KEY_ORDEN = "orden"
-        const val KEY_FAVORITES = "favorite_songs"
     }
 
     private enum class Orden(val etiqueta: String) {
@@ -115,8 +117,8 @@ class MainActivity : AppCompatActivity() {
 
         optionsHelper = SongOptionsHelper(this) { song -> musicService?.removeSong(song.path) }
         // Orden guardado
-        val guardado = getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_ORDEN, 0)
-        orden = Orden.values().getOrElse(guardado) { Orden.NOMBRE_AZ }
+        val guardado = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_ORDEN, 0)
+        orden = Orden.entries.getOrElse(guardado) { Orden.NOMBRE_AZ }
 
         // Ajuste de márgenes del sistema
         val contentRoot = findViewById<View>(R.id.content_root)
@@ -206,7 +208,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         Log.d(TAG, "MainActivity.onStart")
         serviceBound = bindService(
-            Intent(this, MusicService::class.java), connection, Context.BIND_AUTO_CREATE
+            Intent(this, MusicService::class.java), connection, BIND_AUTO_CREATE
         )
         uiHandler.post(progressRunnable)
     }
@@ -243,14 +245,15 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- BÚSQUEDA Y ORDEN ----------
     private fun alternarBusqueda() {
-        if (etSearch.visibility == View.VISIBLE) cerrarBusqueda() else abrirBusqueda()
+        if (etSearch.isVisible) cerrarBusqueda() else abrirBusqueda()
     }
 
     private fun abrirBusqueda() {
         etSearch.visibility = View.VISIBLE
         etSearch.requestFocus()
-        getSystemService(InputMethodManager::class.java)
-            .showSoftInput(etSearch, InputMethodManager.SHOW_IMPLICIT)
+        etSearch.post {
+            WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
+        }
         cerrarBusquedaCallback.isEnabled = true
     }
 
@@ -267,15 +270,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarOrdenes() {
-        val opciones = Orden.values()
+        val opciones = Orden.entries
         AlertDialog.Builder(this)
             .setTitle("Ordenar por")
             .setSingleChoiceItems(
                 opciones.map { it.etiqueta }.toTypedArray(), orden.ordinal
             ) { dialog, which ->
                 orden = opciones[which]
-                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                    .edit().putInt(KEY_ORDEN, which).apply()
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit { putInt(KEY_ORDEN, which) }
                 mostrarLista()
                 dialog.dismiss()
             }
@@ -309,7 +311,7 @@ class MainActivity : AppCompatActivity() {
         val snack = Snackbar.make(findViewById(R.id.content_root), texto, duracion)
         // Si el mini reproductor está visible, el mensaje aparece encima de él
         val mini = findViewById<View>(R.id.miniPlayer)
-        if (mini.visibility == View.VISIBLE) snack.setAnchorView(mini)
+        if (mini.isVisible) snack.setAnchorView(mini)
         if (accion != null) {
             snack.setAction(accion.first) { accion.second() }
                 .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
@@ -444,50 +446,20 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.tvCountMp3).text = contador(mp3.size, allMp3.size)
         findViewById<TextView>(R.id.tvCountOther).text = contador(otros.size, allOthers.size)
-        findViewById<TextView>(R.id.btnSort).text = "ORDEN: ${orden.etiqueta.uppercase()}"
+        findViewById<TextView>(R.id.btnSort).text =
+            getString(R.string.sort_label, orden.etiqueta.uppercase())
     }
 
     private fun contador(mostrados: Int, total: Int): String {
         val base = if (mostrados == 1) "1 archivo" else "$mostrados archivos"
         return if (consulta.isNotEmpty()) "$mostrados de $total" else base
     }
-    // Obtener las canciones favoritas guardadas
-    private fun obtenerFavoritos(): MutableSet<String> {
-        val preferencias = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-        return preferencias.getStringSet(KEY_FAVORITES, emptySet())
-            ?.toMutableSet() ?: mutableSetOf()
-    }
-
-    // Comprobar si una canción es favorita
-    private fun esFavorita(song: Song): Boolean {
-        return obtenerFavoritos().contains(song.path)
-    }
-
-    // Agregar o quitar una canción de favoritos
-    private fun alternarFavorito(song: Song): Boolean {
-        val favoritos = obtenerFavoritos()
-
-        val ahoraEsFavorita = if (favoritos.contains(song.path)) {
-            favoritos.remove(song.path)
-            false
-        } else {
-            favoritos.add(song.path)
-            true
-        }
-
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putStringSet(KEY_FAVORITES, favoritos)
-            .apply()
-
-        return ahoraEsFavorita
-    }
     private fun agregarVistas(songs: List<Song>, container: LinearLayout, formato: String) {
         if (songs.isEmpty()) {
             container.addView(TextView(this).apply {
                 text = if (consulta.isEmpty()) "Sin archivos" else "Sin resultados"
-                setTextColor(android.graphics.Color.parseColor("#666666"))
+                setTextColor("#666666".toColorInt())
                 textSize = 13f
                 val p = (8 * resources.displayMetrics.density).toInt()
                 setPadding(0, p, 0, p)
@@ -522,11 +494,11 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
-            actualizarIconoFavorito(esFavorita(song))
+            actualizarIconoFavorito(FavoritesManager.esFavorita(this, song))
 
 // Acción del botón de favoritos
             btnFavorite.setOnClickListener {
-                val esFavorito = alternarFavorito(song)
+                val esFavorito = FavoritesManager.alternarFavorito(this, song)
 
                 actualizarIconoFavorito(esFavorito)
 

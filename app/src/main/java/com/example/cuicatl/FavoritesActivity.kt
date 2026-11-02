@@ -1,7 +1,5 @@
-
 package com.example.cuicatl
 
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.ComponentName
@@ -57,7 +55,7 @@ class FavoritesActivity : AppCompatActivity() {
         isBound = bindService(
             intent,
             serviceConnection,
-            Context.BIND_AUTO_CREATE
+            BIND_AUTO_CREATE
         )
     }
 
@@ -239,16 +237,16 @@ class FavoritesActivity : AppCompatActivity() {
 
             // Mostrar información de la canción
             tvTitle.text = SongStore.displayTitle(this, song)
-            tvArtist.text = song.artist
+            tvArtist.text = SongStore.displayArtist(this, song)
 
             // Mostrar formato
             itemView.findViewById<TextView>(
                 R.id.tvSongFormat
-            ).text = "MP3"
+            ).text = getString(R.string.format_mp3)
 
-            // Mostrar corazón activo
+            // Mostrar corazón activo (aquí todas son favoritas: corazón lleno)
             btnFavorite.setImageResource(
-                R.drawable.baseline_favorite_border_24
+                R.drawable.baseline_favorite_24
             )
 
             btnFavorite.contentDescription = "Quitar de favoritos"

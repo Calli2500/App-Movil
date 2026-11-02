@@ -49,7 +49,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Elige un video de tu teléfono y guarda solo su audio en tu biblioteca, sin perder calidad."
+                android:text="@string/extract_intro"
                 android:textColor="#4A4A4A"
                 android:textSize="13sp" />
 

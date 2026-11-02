@@ -11,6 +11,7 @@ import android.widget.ImageView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
 
 class AboutActivity : AppCompatActivity() {
 
@@ -42,7 +43,7 @@ class AboutActivity : AppCompatActivity() {
                     try {
                         startActivity(Intent(Intent.ACTION_VIEW, uri))
                     } catch (e: ActivityNotFoundException) {
-                        // sin navegador instalado: no se hace nada
+                        Log.w("CuicatlAbout", "No hay navegador instalado", e)
                     }
                     return true
                 }

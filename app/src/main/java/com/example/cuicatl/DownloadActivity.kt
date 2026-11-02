@@ -1,9 +1,8 @@
 package com.example.cuicatl
 
 import android.content.ClipboardManager
-import android.content.Context
+import androidx.core.net.toUri
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -80,7 +79,7 @@ class DownloadActivity : AppCompatActivity() {
         }
 
         findViewById<ImageView>(R.id.btnPaste).setOnClickListener {
-            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val cm = getSystemService(ClipboardManager::class.java)
             val text = cm.primaryClip?.takeIf { it.itemCount > 0 }
                 ?.getItemAt(0)?.coerceToText(this)?.toString()
             if (text.isNullOrBlank()) {
@@ -111,7 +110,7 @@ class DownloadActivity : AppCompatActivity() {
             view.findViewById(R.id.pbDl),
             view.findViewById(R.id.tvDlStatus)
         )
-        card.title.text = Uri.parse(url).host ?: url
+        card.title.text = url.toUri().host ?: url
         container.addView(view, 0)
         etUrl.setText("")
 
@@ -125,33 +124,38 @@ class DownloadActivity : AppCompatActivity() {
                     context = this,
                     url = url,
                     onStart = { name ->
-                        ui.post { card.title.text = name; card.status.text = "Descargando…" }
+                        ui.post {
+                            card.title.text = name
+                            card.status.text = getString(R.string.dl_downloading)
+                        }
                     },
                     onProgress = { done, total ->
                         ui.post {
                             if (total > 0) {
                                 val p = (done * 100 / total).toInt()
                                 card.bar.progress = p
-                                card.percent.text = "$p%"
+                                card.percent.text = getString(R.string.percent_format, p)
+                                card.status.text = getString(
+                                    R.string.dl_progress_of, formatSize(done), formatSize(total)
+                                )
                             } else {
                                 card.bar.isIndeterminate = true
+                                card.status.text = formatSize(done)
                             }
-                            card.status.text = formatSize(done) +
-                                    if (total > 0) " de ${formatSize(total)}" else ""
                         }
                     }
                 )
                 ui.post {
                     card.bar.isIndeterminate = false
                     card.bar.progress = 100
-                    card.percent.text = "LISTO"
-                    card.status.text = "Guardado en tu biblioteca"
+                    card.percent.text = getString(R.string.dl_done)
+                    card.status.text = getString(R.string.dl_saved)
                 }
             } catch (e: Exception) {
                 ui.post {
                     card.bar.isIndeterminate = false
-                    card.percent.text = "ERROR"
-                    card.status.text = e.message ?: "No se pudo descargar"
+                    card.percent.text = getString(R.string.dl_error)
+                    card.status.text = e.message ?: getString(R.string.dl_failed)
                 }
             }
         }.start()

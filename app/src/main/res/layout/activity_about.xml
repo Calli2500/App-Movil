@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Acerca de / Licencias"
+            android:text="@string/about_title"
             android:textColor="@color/text_dark"
             android:textSize="20sp"
             android:textStyle="bold" />
