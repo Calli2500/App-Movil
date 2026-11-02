@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingHorizontal="4dp"
     android:paddingVertical="8dp">
 
@@ -48,6 +49,18 @@
             android:textColor="#4A4A4A"
             android:textSize="12sp" />
     </LinearLayout>
+
+    <!-- Botón Favoritos -->
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Agregar a favoritos"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/baseline_favorite_border_24"
+        app:tint="@color/text_dark" />
 
     <!-- Opciones (3 puntos) -->
     <ImageView

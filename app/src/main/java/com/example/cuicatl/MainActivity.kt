@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         const val REQ_AUDIO = 100
         const val PREFS = "library_prefs"
         const val KEY_ORDEN = "orden"
+        const val KEY_FAVORITES = "favorite_songs"
     }
 
     private enum class Orden(val etiqueta: String) {
@@ -142,6 +143,10 @@ class MainActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_inicio -> drawerLayout.closeDrawer(GravityCompat.START)
+                R.id.nav_favoritos -> {
+                    startActivity(Intent(this, FavoritesActivity::class.java))
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
                 R.id.nav_descargas -> {
                     startActivity(Intent(this, DownloadActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
@@ -444,7 +449,38 @@ class MainActivity : AppCompatActivity() {
         val base = if (mostrados == 1) "1 archivo" else "$mostrados archivos"
         return if (consulta.isNotEmpty()) "$mostrados de $total" else base
     }
+    // Obtener las canciones favoritas guardadas
+    private fun obtenerFavoritos(): MutableSet<String> {
+        val preferencias = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+        return preferencias.getStringSet(KEY_FAVORITES, emptySet())
+            ?.toMutableSet() ?: mutableSetOf()
+    }
+
+    // Comprobar si una canción es favorita
+    private fun esFavorita(song: Song): Boolean {
+        return obtenerFavoritos().contains(song.path)
+    }
+
+    // Agregar o quitar una canción de favoritos
+    private fun alternarFavorito(song: Song): Boolean {
+        val favoritos = obtenerFavoritos()
+
+        val ahoraEsFavorita = if (favoritos.contains(song.path)) {
+            favoritos.remove(song.path)
+            false
+        } else {
+            favoritos.add(song.path)
+            true
+        }
+
+        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putStringSet(KEY_FAVORITES, favoritos)
+            .apply()
+
+        return ahoraEsFavorita
+    }
     private fun agregarVistas(songs: List<Song>, container: LinearLayout, formato: String) {
         if (songs.isEmpty()) {
             container.addView(TextView(this).apply {
@@ -465,11 +501,41 @@ class MainActivity : AppCompatActivity() {
             val tvTitle = songView.findViewById<TextView>(R.id.tvSongTitle)
             val tvArtist = songView.findViewById<TextView>(R.id.tvSongArtist)
             val tvFormat = songView.findViewById<TextView>(R.id.tvSongFormat)
+            val btnFavorite = songView.findViewById<ImageView>(R.id.btnFavorite)
+
+
 
             tvTitle.text = SongStore.displayTitle(this, song)
             tvArtist.text = SongStore.displayArtist(this, song)
             tvFormat.text = formato
 
+            // Mostrar el estado actual del favorito
+            fun actualizarIconoFavorito(esFavorita: Boolean) {
+                btnFavorite.setImageResource(
+                    if (esFavorita) {
+                        R.drawable.baseline_favorite_24
+                    } else {
+                        R.drawable.baseline_favorite_border_24
+                    }
+                )
+            }
+
+            actualizarIconoFavorito(esFavorita(song))
+
+// Acción del botón de favoritos
+            btnFavorite.setOnClickListener {
+                val esFavorito = alternarFavorito(song)
+
+                actualizarIconoFavorito(esFavorito)
+
+                mostrarMensaje(
+                    if (esFavorito) {
+                        "Agregada a favoritos"
+                    } else {
+                        "Eliminada de favoritos"
+                    }
+                )
+            }
             // Tocar la canción: manda la lista (como se ve en pantalla) al servicio y abre el reproductor
             songView.setOnClickListener {
                 val service = musicService
