@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acerca de Cuicatl</title>
+    <style>
+        body { font-family: sans-serif; background: #E6FAF1; color: #1B3A2F;
+               margin: 0; padding: 16px; line-height: 1.5; }
+        h1 { font-size: 24px; margin: 8px 0 4px; }
+        h2 { font-size: 17px; margin: 24px 0 6px; border-bottom: 2px solid #1B3A2F; padding-bottom: 4px; }
+        p, li { font-size: 14px; }
+        .card { background: #D3F5E7; padding: 12px; border-radius: 12px; margin: 8px 0; }
+        a { color: #0B5D3F; font-weight: bold; }
+        small { color: #4A4A4A; }
+    </style>
+</head>
+<body>
+<h1>Cuicatl</h1>
+<small>Reproductor de música para Android, hecho como proyecto de curso.</small>
+
+<h2>Qué hace</h2>
+<ul>
+    <li>Reproduce tu música local y separa los MP3 de otros formatos.</li>
+    <li>Busca música libre en Jamendo y la descarga por enlace directo.</li>
+    <li>Extrae el audio de un video de tu teléfono y lo guarda como MP3.</li>
+</ul>
+
+<h2>Música y contenido</h2>
+<div class="card">
+    <b>Jamendo</b><br>
+    La música del buscador viene de la API de
+    <a href="https://developer.jamendo.com">Jamendo</a>. Cada pista tiene la licencia
+    <a href="https://creativecommons.org/licenses/">Creative Commons</a> que eligió su artista;
+    revisa esa licencia antes de reutilizarla fuera de la app.
+</div>
+<p>Cuicatl no descarga contenido de plataformas de video ni de servicios de streaming.
+    Solo trabaja con tus archivos, con enlaces directos y con música de licencia libre.</p>
+
+<h2>Software de terceros</h2>
+<div class="card">
+    <b>AndroidX y Material Components</b><br>
+    Licencia Apache 2.0.
+</div>
+<div class="card">
+    <b>LAME / TAndroidLame (conversión a MP3)</b><br>
+    La conversión a MP3 usa
+    <a href="https://github.com/naveensingh/TAndroidLame">TAndroidLame</a>,
+    © 2015 Naman Dwivedi, que envuelve el codificador
+    <a href="https://lame.sourceforge.io">LAME</a>.<br>
+    Licencia: GNU General Public License, versión 3 o posterior (GPL v3+).
+    Este software se distribuye sin ninguna garantía. Puedes consultar el texto completo en
+    <a href="https://www.gnu.org/licenses/">gnu.org/licenses</a>.
+</div>
+
+<h2>Privacidad</h2>
+<p>La app guarda en tu teléfono los nombres, artistas e imágenes que personalizas.
+    No envía tus datos a ningún servidor propio.</p>
+</body>
+</html>

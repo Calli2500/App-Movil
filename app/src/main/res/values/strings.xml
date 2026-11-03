@@ -71,4 +71,32 @@
     <string name="btn_extract">EXTRAER AUDIO</string>
     <string name="btn_extract_entry">EXTRAER AUDIO DE UN VIDEO</string>
     <string name="hint_audio_name">Nombre del audio</string>
+
+    <string name="sort_label">ORDEN: %1$s</string>
+    <string name="format_mp3">MP3</string>
+
+    <!-- Menú y Acerca de -->
+    <string name="menu_inicio">Inicio</string>
+    <string name="menu_favoritos">Favoritos</string>
+    <string name="menu_descargas">Descargas</string>
+    <string name="menu_reproductor">Reproductor</string>
+    <string name="about_title">Acerca de / Licencias</string>
+
+    <!-- Descargas -->
+    <string name="dl_downloading">Descargando…</string>
+    <string name="dl_progress_of">%1$s de %2$s</string>
+    <string name="dl_done">LISTO</string>
+    <string name="dl_saved">Guardado en tu biblioteca</string>
+    <string name="dl_error">ERROR</string>
+    <string name="dl_failed">No se pudo descargar</string>
+    <string name="percent_format">%1$d%%</string>
+
+    <!-- Extracción -->
+    <string name="extract_intro">Elige un video de tu teléfono y guarda su audio como MP3 en tu biblioteca.</string>
+    <string name="extract_converting">Convirtiendo a MP3…</string>
+    <string name="extract_converting_pct">Convirtiendo a MP3… %1$d%%</string>
+    <string name="extract_saved">Guardado en Música/Cuicatl</string>
+
+    <!-- Reproductor -->
+    <string name="player_idle">Sin reproducción</string>
 </resources>

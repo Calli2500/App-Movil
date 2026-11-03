@@ -20,6 +20,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
+import android.util.Log
 
 /**
  * onDeleted se llama cuando una canción ya se eliminó (sirve para sacarla de la cola del reproductor).
@@ -60,6 +65,7 @@ class SongOptionsHelper(
                 val filas = try {
                     if (uri != null) activity.contentResolver.delete(uri, null, null) else 0
                 } catch (e: Exception) {
+                    Log.w("CuicatlDelete", "No se pudo borrar por MediaStore", e)
                     0
                 }
                 if (filas > 0) terminarBorrado(song) else borrarArchivo(song)
@@ -190,23 +196,61 @@ class SongOptionsHelper(
     }
 
     fun showSleepDialog(service: MusicService) {
-        val labels = arrayOf(
-            "1 minuto (prueba)", "15 minutos", "30 minutos",
-            "45 minutos", "1 hora", "Cancelar temporizador"
-        )
-        val minutes = intArrayOf(1, 15, 30, 45, 60)
-        AlertDialog.Builder(activity)
-            .setTitle("Apagar reproductor en…")
-            .setItems(labels) { _, which ->
-                if (which < minutes.size) {
-                    service.setSleepTimer(minutes[which])
-                    mensaje("Se apagará en ${labels[which]}")
-                } else {
-                    service.cancelSleepTimer()
-                    mensaje("Temporizador cancelado")
-                }
+        val pad = (20 * activity.resources.displayMetrics.density).toInt()
+
+        val tvMinutos = TextView(activity).apply {
+            textSize = 20f
+            gravity = Gravity.CENTER
+            text = textoMinutos(30)
+        }
+        val slider = SeekBar(activity).apply {
+            max = 119          // 0..119  ->  1..120 minutos
+            progress = 29      // empieza en 30 minutos
+        }
+        slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                tvMinutos.text = textoMinutos(progress + 1)
             }
-            .show()
+
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+
+        val contenido = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad, pad, 0)
+            addView(tvMinutos)
+            addView(slider)
+        }
+
+        val builder = AlertDialog.Builder(activity)
+            .setTitle("Apagar reproductor en…")
+            .setView(contenido)
+            .setPositiveButton("Programar") { _, _ ->
+                val minutos = slider.progress + 1
+                service.setSleepTimer(minutos)
+                mensaje("Se apagará en ${textoMinutos(minutos)}")
+            }
+            .setNegativeButton("Cancelar", null)
+
+        // El botón neutral solo aparece si ya hay un temporizador activo
+        if (service.sleepEndTime > 0) {
+            builder.setNeutralButton("Quitar temporizador") { _, _ ->
+                service.cancelSleepTimer()
+                mensaje("Temporizador cancelado")
+            }
+        }
+        builder.show()
+    }
+
+    private fun textoMinutos(m: Int): String {
+        val h = m / 60
+        val r = m % 60
+        return when {
+            h == 0 -> if (r == 1) "1 minuto" else "$r minutos"
+            r == 0 -> if (h == 1) "1 hora" else "$h horas"
+            else -> "$h h $r min"
+        }
     }
 
     // ---------- Eliminar canción ----------
@@ -261,6 +305,7 @@ class SongOptionsHelper(
         val ok = try {
             File(song.path).delete()
         } catch (e: Exception) {
+                Log.w("CuicatlDelete", "No se pudo borrar el archivo", e)
             false
         }
         if (ok) {
@@ -274,6 +319,7 @@ class SongOptionsHelper(
 
     private fun terminarBorrado(song: Song) {
         SongStore.forget(activity, song)   // olvida título, artista e imagen guardados
+        FavoritesManager.quitar(activity, song)   // la saca de favoritos si estaba
         onDeleted(song)                    // la saca de la cola del reproductor
         val done = deleteDone
         limpiarBorrado()
