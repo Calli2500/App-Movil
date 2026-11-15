@@ -2,7 +2,6 @@
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -128,7 +127,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginStart="12dp"
-                        android:contentDescription="Cerrar reproductor"
+                        android:contentDescription="@string/cd_close_player"
                         android:src="@android:drawable/ic_menu_close_clear_cancel" />
                 </LinearLayout>
 
@@ -144,139 +143,70 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- CONTENIDO PRINCIPAL CON SCROLL ACTIVADO -->
-        <androidx.core.widget.NestedScrollView
+        <!-- BIBLIOTECA: búsqueda, orden y pestañas MP3 / Otros formatos -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@id/miniPlayer"
             android:layout_below="@id/topBar"
             android:layout_marginTop="12dp"
-            android:fillViewport="true">
+            android:orientation="vertical">
 
-            <LinearLayout
+            <!-- Encabezado Biblioteca -->
+            <!-- Barra de búsqueda (oculta hasta tocar la lupa) -->
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/svLibrary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginBottom="12dp"
+                android:background="#D3F5E7"
+                android:visibility="gone"
+                app:iconifiedByDefault="false"
+                app:queryBackground="@null"
+                app:queryHint="@string/search_hint" />
 
-                <!-- Encabezado Biblioteca -->
-                <!-- Barra de búsqueda (oculta hasta tocar la lupa) -->
-                <EditText
-                    android:id="@+id/etLibrarySearch"
-                    android:layout_width="match_parent"
+            <!-- Encabezado Biblioteca -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="#D3F5E7"
-                    android:hint="Buscar por título o artista"
-                    android:imeOptions="actionSearch"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:padding="12dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@id/spOrden"
+                    android:text="@string/library_title"
                     android:textColor="@color/text_dark"
-                    android:textColorHint="#666666"
-                    android:visibility="gone" />
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-                <!-- Encabezado Biblioteca -->
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
+                <Spinner
+                    android:id="@+id/spOrden"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="@string/cd_sort_spinner"
+                    android:minWidth="160dp" />
+            </RelativeLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:text="@string/library_title"
-                        android:textColor="@color/text_dark"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:tabIndicatorColor="@color/text_dark"
+                app:tabSelectedTextColor="@color/text_dark"
+                app:tabTextColor="#4A4A4A" />
 
-                    <TextView
-                        android:id="@+id/btnSort"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="4dp"
-                        android:text="@string/btn_sort"
-                        android:textColor="@color/text_dark"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-
-                <!-- SECCIÓN MP3 -->
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:text="@string/section_mp3"
-                        android:textColor="@color/text_dark"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvCountMp3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="@string/count_mp3"
-                        android:textColor="#666666"
-                        android:textSize="12sp" />
-                </RelativeLayout>
-
-                <!-- CONTENEDOR PARA INYECTAR MP3 DESDE KOTLIN -->
-                <LinearLayout
-                    android:id="@+id/containerMp3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:orientation="vertical">
-                </LinearLayout>
-
-                <!-- SECCIÓN OTROS FORMATOS -->
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:text="@string/section_other"
-                        android:textColor="@color/text_dark"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvCountOther"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="@string/count_other"
-                        android:textColor="#666666"
-                        android:textSize="12sp" />
-                </RelativeLayout>
-
-                <!-- CONTENEDOR PARA INYECTAR OTROS FORMATOS DESDE KOTLIN -->
-                <LinearLayout
-                    android:id="@+id/containerOthers"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:orientation="vertical">
-                </LinearLayout>
-
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/pagerLibrary"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
 
     </RelativeLayout>
 
@@ -287,6 +217,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
         app:menu="@menu/menu_opciones" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

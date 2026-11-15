@@ -1,21 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Submenú: Biblioteca -->
     <item
-        android:id="@+id/nav_inicio"
-        android:title="@string/menu_inicio" />
+        android:id="@+id/grupo_biblioteca"
+        android:title="@string/menu_grupo_biblioteca">
+        <menu>
+            <item
+                android:id="@+id/nav_inicio"
+                android:icon="@android:drawable/ic_menu_agenda"
+                android:title="@string/menu_inicio" />
+            <item
+                android:id="@+id/nav_favoritos"
+                android:icon="@drawable/baseline_favorite_24"
+                android:title="@string/menu_favoritos" />
+        </menu>
+    </item>
 
+    <!-- Submenú: Herramientas -->
     <item
-        android:id="@+id/nav_favoritos"
-        android:title="@string/menu_favoritos" />
-
-    <item
-        android:id="@+id/nav_descargas"
-        android:title="@string/menu_descargas" />
-
-    <item
-        android:id="@+id/nav_reproductor"
-        android:title="@string/menu_reproductor" />
+        android:id="@+id/grupo_herramientas"
+        android:title="@string/menu_grupo_herramientas">
+        <menu>
+            <item
+                android:id="@+id/nav_descargas"
+                android:icon="@android:drawable/stat_sys_download"
+                android:title="@string/menu_descargas" />
+            <item
+                android:id="@+id/nav_reproductor"
+                android:icon="@android:drawable/ic_media_play"
+                android:title="@string/menu_reproductor" />
+        </menu>
+    </item>
 
     <item
         android:id="@+id/nav_acerca"

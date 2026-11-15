@@ -13,27 +13,24 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.Settings
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -41,9 +38,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), LibraryHost {
 
     private companion object {
         const val TAG = "CuicatlLifecycle"
@@ -72,7 +72,9 @@ class MainActivity : AppCompatActivity() {
 
     private var orden = Orden.NOMBRE_AZ
     private var consulta = ""
-    private lateinit var etSearch: EditText
+    private lateinit var svSearch: SearchView
+    private lateinit var tabLayout: TabLayout
+    private val vm: LibraryViewModel by viewModels()
 
     // El botón "atrás" cierra primero la búsqueda (solo está activo mientras se ve)
     private val cerrarBusquedaCallback = object : OnBackPressedCallback(false) {
@@ -162,25 +164,33 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // Búsqueda y orden
-        etSearch = findViewById(R.id.etLibrarySearch)
+        // Pestañas: TabLayout + ViewPager2 con un fragment por pestaña (Lesson 9)
+        tabLayout = findViewById(R.id.tabLayout)
+        val pager = findViewById<ViewPager2>(R.id.pagerLibrary)
+        pager.adapter = LibraryPagerAdapter(supportFragmentManager, lifecycle)
+        pager.offscreenPageLimit = 1
+        TabLayoutMediator(tabLayout, pager) { tab, position ->
+            tab.text = getString(if (position == 0) R.string.tab_mp3 else R.string.tab_other)
+        }.attach()
+
+        // Búsqueda (SearchView) y orden (Spinner)
+        svSearch = findViewById(R.id.svLibrary)
         onBackPressedDispatcher.addCallback(this, cerrarBusquedaCallback)
         findViewById<ImageView>(R.id.btnSearch).setOnClickListener { alternarBusqueda() }
-        findViewById<TextView>(R.id.btnSort).setOnClickListener { mostrarOrdenes() }
-        etSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
-            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                consulta = s?.toString()?.trim() ?: ""
+        svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                svSearch.clearFocus()
+                ocultarTeclado()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                consulta = newText?.trim() ?: ""
                 mostrarLista()
+                return true
             }
         })
-        etSearch.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                ocultarTeclado()
-                true
-            } else false
-        }
+        configurarSpinnerOrden()
 
         // Controles del mini reproductor
         findViewById<View>(R.id.miniPlayer).setOnClickListener {
@@ -245,44 +255,52 @@ class MainActivity : AppCompatActivity() {
 
     // ---------- BÚSQUEDA Y ORDEN ----------
     private fun alternarBusqueda() {
-        if (etSearch.isVisible) cerrarBusqueda() else abrirBusqueda()
+        if (svSearch.isVisible) cerrarBusqueda() else abrirBusqueda()
     }
 
     private fun abrirBusqueda() {
-        etSearch.visibility = View.VISIBLE
-        etSearch.requestFocus()
-        etSearch.post {
-            WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
+        svSearch.visibility = View.VISIBLE
+        svSearch.requestFocus()
+        svSearch.post {
+            WindowCompat.getInsetsController(window, svSearch).show(WindowInsetsCompat.Type.ime())
         }
         cerrarBusquedaCallback.isEnabled = true
     }
 
     private fun cerrarBusqueda() {
-        etSearch.setText("") // al quedar vacío, la lista vuelve a mostrarse completa
-        etSearch.visibility = View.GONE
+        svSearch.setQuery("", false) // al quedar vacío, la lista vuelve a mostrarse completa
+        svSearch.visibility = View.GONE
         ocultarTeclado()
         cerrarBusquedaCallback.isEnabled = false
     }
 
     private fun ocultarTeclado() {
         getSystemService(InputMethodManager::class.java)
-            .hideSoftInputFromWindow(etSearch.windowToken, 0)
+            .hideSoftInputFromWindow(svSearch.windowToken, 0)
     }
 
-    private fun mostrarOrdenes() {
-        val opciones = Orden.entries
-        AlertDialog.Builder(this)
-            .setTitle("Ordenar por")
-            .setSingleChoiceItems(
-                opciones.map { it.etiqueta }.toTypedArray(), orden.ordinal
-            ) { dialog, which ->
-                orden = opciones[which]
-                getSharedPreferences(PREFS, MODE_PRIVATE).edit { putInt(KEY_ORDEN, which) }
+    // Spinner de orden: ArrayAdapter + OnItemSelectedListener (Lesson 9)
+    private fun configurarSpinnerOrden() {
+        val spinner = findViewById<Spinner>(R.id.spOrden)
+        val adapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_item, Orden.entries.map { it.etiqueta }
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+        spinner.setSelection(orden.ordinal, false) // sin disparar el listener al iniciar
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
+                val nuevo = Orden.entries[position]
+                if (nuevo == orden) return
+                orden = nuevo
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit { putInt(KEY_ORDEN, position) }
                 mostrarLista()
-                dialog.dismiss()
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun ordenar(songs: List<Song>): List<Song> = when (orden) {
@@ -431,106 +449,48 @@ class MainActivity : AppCompatActivity() {
         mostrarLista()
     }
 
-    // Aplica búsqueda y orden y dibuja las dos secciones
+    // Aplica búsqueda y orden y se la pasa a los fragments (RecyclerView) por el ViewModel
     private fun mostrarLista() {
-        val containerMp3 = findViewById<LinearLayout>(R.id.containerMp3)
-        val containerOthers = findViewById<LinearLayout>(R.id.containerOthers)
-        containerMp3.removeAllViews()
-        containerOthers.removeAllViews()
-
         val mp3 = ordenar(allMp3.filter { coincide(it) })
         val otros = ordenar(allOthers.filter { coincide(it) })
 
-        agregarVistas(mp3, containerMp3, "MP3")
-        agregarVistas(otros, containerOthers, "OTRO")
+        vm.consulta = consulta
+        vm.mp3.value = mp3
+        vm.otros.value = otros
 
-        findViewById<TextView>(R.id.tvCountMp3).text = contador(mp3.size, allMp3.size)
-        findViewById<TextView>(R.id.tvCountOther).text = contador(otros.size, allOthers.size)
-        findViewById<TextView>(R.id.btnSort).text =
-            getString(R.string.sort_label, orden.etiqueta.uppercase())
+        tabLayout.getTabAt(0)?.text = getString(
+            R.string.tab_count, getString(R.string.tab_mp3), cuenta(mp3.size, allMp3.size)
+        )
+        tabLayout.getTabAt(1)?.text = getString(
+            R.string.tab_count, getString(R.string.tab_other), cuenta(otros.size, allOthers.size)
+        )
     }
 
-    private fun contador(mostrados: Int, total: Int): String {
-        val base = if (mostrados == 1) "1 archivo" else "$mostrados archivos"
-        return if (consulta.isNotEmpty()) "$mostrados de $total" else base
+    private fun cuenta(mostrados: Int, total: Int): String =
+        if (consulta.isNotEmpty()) "$mostrados/$total" else "$mostrados"
+
+    // ---------- LibraryHost: lo que piden los fragments ----------
+    override fun onSongClick(songs: List<Song>, index: Int) {
+        val service = musicService
+        if (service == null) {
+            pendingPlay = songs to index
+            mostrarMensaje("Conectando reproductor…")
+        } else {
+            service.playQueue(songs, index)
+            startActivity(Intent(this, PlayerActivity::class.java))
+        }
     }
 
-    private fun agregarVistas(songs: List<Song>, container: LinearLayout, formato: String) {
-        if (songs.isEmpty()) {
-            container.addView(TextView(this).apply {
-                text = if (consulta.isEmpty()) "Sin archivos" else "Sin resultados"
-                setTextColor("#666666".toColorInt())
-                textSize = 13f
-                val p = (8 * resources.displayMetrics.density).toInt()
-                setPadding(0, p, 0, p)
-            })
-            return
+    override fun onSongOptions(anchor: View, song: Song) {
+        optionsHelper.showSongMenu(anchor, song) {
+            cargarCancionesLocales() // el título pudo cambiar o la canción se eliminó
+            actualizarMiniPlayer()
         }
+    }
 
-        val inflater = LayoutInflater.from(this)
-
-        songs.forEachIndexed { index, song ->
-            val songView = inflater.inflate(R.layout.item_song, container, false)
-
-            val tvTitle = songView.findViewById<TextView>(R.id.tvSongTitle)
-            val tvArtist = songView.findViewById<TextView>(R.id.tvSongArtist)
-            val tvFormat = songView.findViewById<TextView>(R.id.tvSongFormat)
-            val btnFavorite = songView.findViewById<ImageView>(R.id.btnFavorite)
-
-
-
-            tvTitle.text = SongStore.displayTitle(this, song)
-            tvArtist.text = SongStore.displayArtist(this, song)
-            tvFormat.text = formato
-
-            // Mostrar el estado actual del favorito
-            fun actualizarIconoFavorito(esFavorita: Boolean) {
-                btnFavorite.setImageResource(
-                    if (esFavorita) {
-                        R.drawable.baseline_favorite_24
-                    } else {
-                        R.drawable.baseline_favorite_border_24
-                    }
-                )
-            }
-
-            actualizarIconoFavorito(FavoritesManager.esFavorita(this, song))
-
-// Acción del botón de favoritos
-            btnFavorite.setOnClickListener {
-                val esFavorito = FavoritesManager.alternarFavorito(this, song)
-
-                actualizarIconoFavorito(esFavorito)
-
-                mostrarMensaje(
-                    if (esFavorito) {
-                        "Agregada a favoritos"
-                    } else {
-                        "Eliminada de favoritos"
-                    }
-                )
-            }
-            // Tocar la canción: manda la lista (como se ve en pantalla) al servicio y abre el reproductor
-            songView.setOnClickListener {
-                val service = musicService
-                if (service == null) {
-                    pendingPlay = songs to index
-                    mostrarMensaje("Conectando reproductor…")
-                } else {
-                    service.playQueue(songs, index)
-                    startActivity(Intent(this, PlayerActivity::class.java))
-                }
-            }
-
-            // Los 3 puntos de cada canción
-            songView.findViewById<View>(R.id.btnSongOptions)?.setOnClickListener { anchor ->
-                optionsHelper.showSongMenu(anchor, song) {
-                    cargarCancionesLocales() // el título pudo cambiar o la canción se eliminó
-                    actualizarMiniPlayer()
-                }
-            }
-
-            container.addView(songView)
-        }
+    override fun onFavoriteClick(song: Song): Boolean {
+        val esFavorita = FavoritesManager.alternarFavorito(this, song)
+        mostrarMensaje(if (esFavorita) "Agregada a favoritos" else "Eliminada de favoritos")
+        return esFavorita
     }
 }

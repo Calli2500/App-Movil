@@ -35,12 +35,12 @@
 
     <!-- Vista Descargar Música -->
     <string name="title_download_music">Descargar Música</string>
-    <string name="hint_paste_url">Pegar URL aquí...</string>
+    <string name="hint_paste_url">Pegar URL aquí…</string>
     <string name="btn_download_mp3">DESCARGAR COMO MP3</string>
     <string name="section_recent_downloads">DESCARGAS RECIENTES</string>
 
     <!-- Item Descarga en progreso -->
-    <string name="download_1_title">cancion descagada1</string>
+    <string name="download_1_title">cancion descagada</string>
     <string name="download_1_percent">65%</string>
     <string name="download_1_status">Descargando como MP3 • 4.2 MB / 6.5 MB</string>
 
@@ -72,7 +72,6 @@
     <string name="btn_extract_entry">EXTRAER AUDIO DE UN VIDEO</string>
     <string name="hint_audio_name">Nombre del audio</string>
 
-    <string name="sort_label">ORDEN: %1$s</string>
     <string name="format_mp3">MP3</string>
 
     <!-- Menú y Acerca de -->
@@ -99,4 +98,18 @@
 
     <!-- Reproductor -->
     <string name="player_idle">Sin reproducción</string>
+
+    <string name="menu_grupo_biblioteca">Biblioteca</string>
+    <string name="menu_grupo_herramientas">Herramientas</string>
+    <string name="nav_header_subtitle">Tu música, en un solo lugar</string>
+    <string name="cd_nav_logo">Logo de Cuicatl</string>
+    <string name="search_hint">Buscar por título o artista</string>
+    <string name="cd_sort_spinner">Ordenar por</string>
+
+    <string name="tab_mp3">MP3</string>
+    <string name="tab_other">Otros formatos</string>
+    <string name="tab_count">%1$s (%2$s)</string>
+    <string name="lib_sin_archivos">Sin archivos</string>
+    <string name="lib_sin_resultados">Sin resultados</string>
+
 </resources>
