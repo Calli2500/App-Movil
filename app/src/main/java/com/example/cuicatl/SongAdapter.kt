@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 class SongAdapter(
-    private val formato: String,
+    private val formato: String?, // null = se muestra la extensión del archivo
     private val host: LibraryHost
 ) : ListAdapter<Song, SongAdapter.VH>(Diff) {
 
@@ -31,7 +31,8 @@ class SongAdapter(
 
         holder.tvTitle.text = SongStore.displayTitle(ctx, song)
         holder.tvArtist.text = SongStore.displayArtist(ctx, song)
-        holder.tvFormat.text = formato
+        holder.tvFormat.text =
+            formato ?: song.path.substringAfterLast('.', "").uppercase().take(4)
 
         fun pintarCorazon(esFavorita: Boolean) {
             holder.btnFavorite.setImageResource(

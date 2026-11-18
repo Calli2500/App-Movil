@@ -20,7 +20,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
@@ -100,6 +99,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.aplicar(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_player)
@@ -216,6 +216,12 @@ class PlayerActivity : AppCompatActivity() {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 }
+                R.id.nav_playlists -> {
+                    startActivity(
+                        Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_TAB, 2)
+                    )
+                    finish()
+                }
                 R.id.nav_favoritos -> {
                     startActivity(Intent(this, FavoritesActivity::class.java))
                     finish()
@@ -224,6 +230,7 @@ class PlayerActivity : AppCompatActivity() {
                     startActivity(Intent(this, DownloadActivity::class.java))
                     finish()
                 }
+                R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
             drawerLayout.closeDrawer(GravityCompat.START)
@@ -311,19 +318,18 @@ class PlayerActivity : AppCompatActivity() {
                     Snackbar.LENGTH_LONG
                 )
                     .setAction("QUITAR") { s.clearAB() }
-                    .setActionTextColor(ContextCompat.getColor(this, R.color.text_dark))
+                    .setActionTextColor(ContextCompat.getColor(this, R.color.snack_action))
                     .show()
         }
     }
 
     private fun estilo(tv: TextView, activo: Boolean) {
-        val oscuro = ContextCompat.getColor(this, R.color.text_dark)
         if (activo) {
-            tv.setBackgroundColor(oscuro)
-            tv.setTextColor(ContextCompat.getColor(this, R.color.white))
+            tv.setBackgroundColor(ContextCompat.getColor(this, R.color.accent))
+            tv.setTextColor(ContextCompat.getColor(this, R.color.on_accent))
         } else {
-            tv.setBackgroundColor("#D3F5E7".toColorInt())
-            tv.setTextColor(oscuro)
+            tv.setBackgroundColor(ContextCompat.getColor(this, R.color.chip_bg))
+            tv.setTextColor(ContextCompat.getColor(this, R.color.text_dark))
         }
     }
 

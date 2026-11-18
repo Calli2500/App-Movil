@@ -30,7 +30,8 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/cd_menu"
-                android:src="@android:drawable/ic_menu_sort_by_size" />
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/text_dark" />
 
             <TextView
                 android:layout_width="0dp"
@@ -65,7 +66,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="Mis favoritos"
+                    android:text="@string/favorites_title"
                     android:textColor="@color/text_dark"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -74,8 +75,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:text="Tu colección de canciones favoritas."
-                    android:textColor="#4A4A4A"
+                    android:text="@string/favorites_subtitle"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp" />
 
                 <!-- MENSAJE CUANDO NO HAY FAVORITOS -->
@@ -83,10 +84,10 @@
                     android:id="@+id/tvEmptyFavorites"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#D3F5E7"
+                    android:background="@color/chip_bg"
                     android:gravity="center"
                     android:padding="24dp"
-                    android:text="Aún no tienes canciones favoritas"
+                    android:text="@string/favorites_empty"
                     android:textColor="@color/text_dark"
                     android:textSize="15sp"
                     android:visibility="gone" />

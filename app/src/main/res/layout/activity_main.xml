@@ -29,7 +29,8 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/cd_menu"
-                android:src="@android:drawable/ic_menu_sort_by_size" />
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/text_dark" />
 
             <TextView
                 android:layout_width="0dp"
@@ -46,7 +47,8 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/cd_search"
-                android:src="@android:drawable/ic_menu_search" />
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="@color/text_dark" />
         </LinearLayout>
 
         <!-- MINI PLAYER -->
@@ -96,7 +98,7 @@
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:textColor="#666666"
+                            android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -106,7 +108,8 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
                         android:contentDescription="@string/cd_previous"
-                        android:src="@android:drawable/ic_media_previous" />
+                        android:src="@android:drawable/ic_media_previous"
+                        app:tint="@color/text_dark" />
 
                     <ImageView
                         android:id="@+id/btnMiniPlay"
@@ -114,21 +117,24 @@
                         android:layout_height="28dp"
                         android:layout_marginEnd="12dp"
                         android:contentDescription="@string/cd_play"
-                        android:src="@android:drawable/ic_media_play" />
+                        android:src="@android:drawable/ic_media_play"
+                        app:tint="@color/text_dark" />
 
                     <ImageView
                         android:id="@+id/btnMiniNext"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="@string/cd_next"
-                        android:src="@android:drawable/ic_media_next" />
+                        android:src="@android:drawable/ic_media_next"
+                        app:tint="@color/text_dark" />
                     <ImageView
                         android:id="@+id/btnMiniClose"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginStart="12dp"
                         android:contentDescription="@string/cd_close_player"
-                        android:src="@android:drawable/ic_menu_close_clear_cancel" />
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        app:tint="@color/text_dark" />
                 </LinearLayout>
 
                 <ProgressBar
@@ -152,20 +158,20 @@
             android:layout_marginTop="12dp"
             android:orientation="vertical">
 
-            <!-- Encabezado Biblioteca -->
+
             <!-- Barra de búsqueda (oculta hasta tocar la lupa) -->
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/svLibrary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:background="#D3F5E7"
+                android:background="@color/chip_bg"
                 android:visibility="gone"
                 app:iconifiedByDefault="false"
                 app:queryBackground="@null"
                 app:queryHint="@string/search_hint" />
 
-            <!-- Encabezado Biblioteca -->
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -189,6 +195,7 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:contentDescription="@string/cd_sort_spinner"
+                    android:textColor="@color/text_dark"
                     android:minWidth="160dp" />
             </RelativeLayout>
 
@@ -199,7 +206,7 @@
                 android:background="@android:color/transparent"
                 app:tabIndicatorColor="@color/text_dark"
                 app:tabSelectedTextColor="@color/text_dark"
-                app:tabTextColor="#4A4A4A" />
+                app:tabTextColor="@color/text_secondary" />
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/pagerLibrary"

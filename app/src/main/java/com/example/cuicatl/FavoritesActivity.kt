@@ -84,10 +84,18 @@ class FavoritesActivity : AppCompatActivity() {
                     finish()
                 }
 
+                R.id.nav_playlists -> {
+                    startActivity(
+                        Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_TAB, 2)
+                    )
+                    finish()
+                }
+
                 R.id.nav_reproductor -> {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     finish()
                 }
+                R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
 

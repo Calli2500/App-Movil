@@ -50,16 +50,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:text="@string/extract_intro"
-                android:textColor="#4A4A4A"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
             <Button
                 android:id="@+id/btnPickVideo"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:backgroundTint="@color/text_dark"
+                android:backgroundTint="@color/accent"
                 android:text="@string/btn_pick_video"
-                android:textColor="@color/white"
+                android:textColor="@color/on_accent"
                 android:textStyle="bold"
                 app:cornerRadius="12dp" />
 
@@ -75,7 +75,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#D3F5E7"
+                    android:background="@color/chip_bg"
                     android:orientation="vertical"
                     android:padding="12dp">
 
@@ -100,7 +100,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:textColor="#4A4A4A"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -110,13 +110,13 @@
                     android:layout_height="52dp"
                     android:layout_marginTop="12dp"
                     android:autofillHints="name"
-                    android:background="#D3F5E7"
+                    android:background="@color/chip_bg"
                     android:hint="@string/hint_audio_name"
                     android:inputType="text"
                     android:maxLines="1"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/text_dark"
-                    android:textColorHint="#555555"
+                    android:textColorHint="@color/text_secondary"
                     android:textSize="14sp" />
 
                 <Button
@@ -124,9 +124,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginTop="12dp"
-                    android:backgroundTint="@color/text_dark"
+                    android:backgroundTint="@color/accent"
                     android:text="@string/btn_extract"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_accent"
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
             </LinearLayout>
@@ -146,7 +146,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="#4A4A4A"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

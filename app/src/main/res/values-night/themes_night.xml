@@ -1,0 +1,30 @@
+<resources>
+    <!-- Tema oscuro: verdes en lugar de gris/negro -->
+    <style name="Base.Theme.Cuicatl" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/verde_cuicatl</item>
+
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="colorSecondaryContainer">@color/chip_bg</item>
+        <item name="colorOnSecondaryContainer">@color/text_dark</item>
+
+        <!-- Superficies: menú lateral, diálogos, menús emergentes, cola de reproducción -->
+        <item name="android:colorBackground">@color/verde_cuicatl</item>
+        <item name="colorSurface">@color/bg_mint</item>
+        <item name="colorSurfaceContainerLowest">@color/verde_cuicatl</item>
+        <item name="colorSurfaceContainerLow">@color/bg_mint</item>
+        <item name="colorSurfaceContainer">@color/mint_card</item>
+        <item name="colorSurfaceContainerHigh">@color/mint_card</item>
+        <item name="colorSurfaceContainerHighest">@color/chip_bg</item>
+        <item name="colorOnSurface">@color/text_dark</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">#4E7A69</item>
+        <item name="colorOutlineVariant">#2E5A49</item>
+
+        <!-- Snackbar -->
+        <item name="colorSurfaceInverse">@color/text_dark</item>
+        <item name="colorOnSurfaceInverse">@color/verde_cuicatl</item>
+    </style>
+
+    <style name="Theme.Cuicatl" parent="Base.Theme.Cuicatl" />
+</resources>

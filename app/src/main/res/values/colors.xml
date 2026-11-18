@@ -2,8 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Fondos -->
     <color name="verde_cuicatl">#A7F3D0</color>
     <color name="bg_mint">#A3E8CC</color>
     <color name="mint_card">#A3E8D0</color>
+    <color name="chip_bg">#D3F5E7</color>
+
+    <!-- Texto e iconos -->
     <color name="text_dark">#121212</color>
+    <color name="text_secondary">#4A4A4A</color>
+    <color name="divider">#33000000</color>
+
+    <!-- Botones rellenos y el texto que va encima -->
+    <color name="accent">#121212</color>
+    <color name="on_accent">#FFFFFFFF</color>
+
+    <!-- Texto del botón de acción de los Snackbar -->
+    <color name="snack_action">#A3E8CC</color>
 </resources>

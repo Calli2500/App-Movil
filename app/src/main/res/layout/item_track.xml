@@ -14,7 +14,7 @@
         android:id="@+id/ivTrackCover"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:background="@color/text_dark"
+        android:background="@color/accent"
         android:contentDescription="@string/cd_album_art"
         android:scaleType="centerCrop" />
 
@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="#4A4A4A"
+            android:textColor="@color/text_secondary"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -49,7 +49,7 @@
         android:id="@+id/tvTrackDuration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#4A4A4A"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 
 </LinearLayout>

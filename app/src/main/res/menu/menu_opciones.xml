@@ -14,6 +14,10 @@
                 android:id="@+id/nav_favoritos"
                 android:icon="@drawable/baseline_favorite_24"
                 android:title="@string/menu_favoritos" />
+            <item
+                android:id="@+id/nav_playlists"
+                android:icon="@android:drawable/ic_menu_slideshow"
+                android:title="@string/menu_playlists" />
         </menu>
     </item>
 
@@ -30,6 +34,10 @@
                 android:id="@+id/nav_reproductor"
                 android:icon="@android:drawable/ic_media_play"
                 android:title="@string/menu_reproductor" />
+            <item
+                android:id="@+id/nav_tema"
+                android:icon="@android:drawable/ic_menu_view"
+                android:title="@string/menu_tema" />
         </menu>
     </item>
 

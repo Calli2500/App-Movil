@@ -112,4 +112,78 @@
     <string name="lib_sin_archivos">Sin archivos</string>
     <string name="lib_sin_resultados">Sin resultados</string>
 
+    <string name="share_title">Compartir canción</string>
+    <string name="share_text">Estoy escuchando %1$s de %2$s</string>
+
+    <string name="queue_title">Cola de reproducción</string>
+    <string name="queue_count">%1$d en cola</string>
+    <string name="queue_playing">▶</string>
+    <string name="cd_queue_remove">Quitar de la cola</string>
+
+    <string name="queue_now">REPRODUCIENDO AHORA</string>
+    <string name="queue_next">A CONTINUACIÓN</string>
+    <string name="queue_hint">Mantén presionada una canción para moverla</string>
+    <string name="queue_empty">No hay más canciones en la cola</string>
+    <string name="queue_shuffle">Aleatorio</string>
+    <string name="queue_mix">Mezclar</string>
+
+    <string name="tab_playlists">Playlists</string>
+    <string name="playlists_new">Nueva playlist</string>
+    <string name="playlists_empty">Aún no tienes playlists. Crea una con el botón de arriba.</string>
+    <plurals name="playlist_songs">
+        <item quantity="one">%d canción</item>
+        <item quantity="other">%d canciones</item>
+    </plurals>
+    <string name="playlist_play">Reproducir</string>
+    <string name="playlist_shuffle">Aleatorio</string>
+    <string name="playlist_empty_songs">Esta playlist está vacía. Agrega canciones desde ⋮ → Agregar a playlist…</string>
+    <string name="cd_playlist_menu">Opciones de la playlist</string>
+    <string name="note_symbol">♪</string>
+    <string name="playlist_add">Agregar</string>
+
+    <string name="menu_tema">Tema</string>
+
+    <string name="symbol_check">✓</string>
+    <string name="thanks_done">¡Listo!</string>
+    <string name="btn_back_library">VOLVER A LA BIBLIOTECA</string>
+    <string name="confirm_title">Confirma los cambios</string>
+    <string name="confirm_subtitle">Revisa que todo esté bien antes de guardar.</string>
+    <string name="confirm_new_title">Nuevo título</string>
+    <string name="btn_edit_caps">EDITAR</string>
+    <string name="btn_accept_caps">ACEPTAR</string>
+    <string name="dl_item_title">Descarga</string>
+    <string name="dl_percent_zero">0%</string>
+
+    <!-- Editar canción / favoritos / reproductor -->
+    <string name="edit_song_title">Editar canción</string>
+    <string name="cd_cover">Portada</string>
+    <string name="edit_pick_image">Elegir imagen</string>
+    <string name="label_title">Título</string>
+    <string name="hint_song_title">Título de la canción</string>
+    <string name="label_artist">Artista</string>
+    <string name="hint_artist_optional">Artista (vacío = el original)</string>
+    <string name="btn_continue">CONTINUAR</string>
+    <string name="btn_cancel_caps">CANCELAR</string>
+    <string name="favorites_title">Mis favoritos</string>
+    <string name="favorites_subtitle">Tu colección de canciones favoritas.</string>
+    <string name="favorites_empty">Aún no tienes canciones favoritas</string>
+    <string name="cd_add_favorite">Agregar a favoritos</string>
+    <string name="speed_default">1x</string>
+    <string name="loop_a">A</string>
+    <string name="loop_b">B</string>
+    <string name="cd_clear_ab">Quitar bucle A-B</string>
+    <string name="symbol_close">✕</string>
+    <string name="symbol_edit">✎</string>
+    <string name="dl_url_intro">Pega un enlace directo a un archivo de audio (.mp3, .m4a, .ogg, .wav…).</string>
+
+    <!-- Cola y detalle de pista -->
+    <string name="queue_num">%1$d</string>
+    <string name="td_license">Licencia: %1$s</string>
+    <string name="td_not_allowed">El artista no permite descargar esta canción desde apps.</string>
+    <string name="td_connecting">Conectando…</string>
+    <string name="td_progress">%1$s de %2$s</string>
+    <string name="td_saved">Guardada en Música/Cuicatl</string>
+    <string name="search_error">No se pudo cargar</string>
+
+    <string name="menu_playlists">Playlists</string>
 </resources>

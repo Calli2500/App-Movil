@@ -2,13 +2,16 @@ package com.example.cuicatl
 
 import android.app.Activity
 import android.app.RecoverableSecurityException
+import android.content.ClipData
 import android.content.ContentUris
+import android.content.Intent
 import android.content.IntentSender
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -18,6 +21,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import android.view.Gravity
@@ -85,12 +95,16 @@ class SongOptionsHelper(
             menu.add(0, 1, 0, "Cambiar nombre")
             menu.add(0, 2, 1, "Cambiar imagen")
             menu.add(0, 3, 2, "Editar canción…")
+            menu.add(0, 9, 2, "Compartir")
+            menu.add(0, 10, 2, "Agregar a playlist…")
             menu.add(0, 4, 3, "Eliminar canción")
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     1 -> rename(song, onChanged)
                     2 -> pickImage(song, onChanged)
                     3 -> activity.startActivity(EditSongActivity.intentFor(activity, song))
+                    9 -> compartir(song)
+                    10 -> agregarAPlaylist(song)
                     4 -> confirmarEliminar(song, onChanged)
                 }
                 true
@@ -109,20 +123,28 @@ class SongOptionsHelper(
                 0, 3, 2,
                 if (service.sleepEndTime > 0) "Temporizador (activo)" else "Apagar reproductor en…"
             )
+            menu.add(0, 8, 2, "Ver cola de reproducción")
             menu.add(0, 4, 3, "Repetir canción en bucle").apply {
                 isCheckable = true
                 isChecked = service.loopEnabled
             }
+            menu.add(0, 9, 3, "Compartir")
+            menu.add(0, 10, 3, "Agregar a playlist…")
+            menu.add(0, 11, 3, "Guardar fragmento A–B como MP3")
             menu.add(0, 5, 4, "Eliminar canción")
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     1 -> rename(song, onChanged)
                     2 -> pickImage(song, onChanged)
                     3 -> showSleepDialog(service)
+                    8 -> mostrarCola(service)
                     4 -> {
                         service.setLoop(!service.loopEnabled)
                         onChanged()
                     }
+                    9 -> compartir(song)
+                    10 -> agregarAPlaylist(song)
+                    11 -> guardarFragmento(song, service)
                     5 -> confirmarEliminar(song, onChanged)
                 }
                 true
@@ -193,6 +215,198 @@ class SongOptionsHelper(
         pendingSong = song
         pendingDone = onDone
         picker.launch("image/*")
+    }
+
+    // ---------- Cola de reproducción ----------
+    /**
+     * Hoja inferior: arriba lo que suena ahora y abajo lo que viene. Tocar salta a esa canción,
+     * la ✕ la quita y, manteniéndola presionada, se arrastra para cambiar su lugar.
+     */
+    fun mostrarCola(service: MusicService) {
+        val dialog = BottomSheetDialog(activity)
+        val vista = LayoutInflater.from(activity).inflate(R.layout.sheet_queue, FrameLayout(activity), false)
+        val rv = vista.findViewById<RecyclerView>(R.id.rvQueue)
+        val tvCount = vista.findViewById<TextView>(R.id.tvQueueCount)
+        val tvNowTitle = vista.findViewById<TextView>(R.id.tvNowTitle)
+        val tvNowArtist = vista.findViewById<TextView>(R.id.tvNowArtist)
+        val tvEmpty = vista.findViewById<TextView>(R.id.tvQueueEmpty)
+        val btnShuffle = vista.findViewById<TextView>(R.id.btnQueueShuffle)
+        val btnMix = vista.findViewById<TextView>(R.id.btnQueueMix)
+
+        // La lista solo muestra lo que viene: la fila p es la canción (actual + 1 + p) de la cola
+        val adapter = QueueAdapter(
+            onClick = { service.playIndex(service.currentIndex + 1 + it) },
+            onRemove = { service.removeAt(service.currentIndex + 1 + it) }
+        )
+        rv.adapter = adapter
+        rv.itemAnimator = null
+
+        // Arrastrar para reordenar (mantener presionada una fila)
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val desde = viewHolder.bindingAdapterPosition
+                val hasta = target.bindingAdapterPosition
+                if (desde == RecyclerView.NO_POSITION || hasta == RecyclerView.NO_POSITION) {
+                    return false
+                }
+                adapter.mover(desde, hasta)
+                val base = service.currentIndex + 1
+                service.moveInQueue(base + desde, base + hasta)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+        }).attachToRecyclerView(rv)
+
+        fun estiloBoton(tv: TextView, activo: Boolean) {
+            val oscuro = ContextCompat.getColor(activity, R.color.text_dark)
+            if (activo) {
+                tv.setBackgroundColor(oscuro)
+                tv.setTextColor(ContextCompat.getColor(activity, R.color.white))
+            } else {
+                tv.setBackgroundColor("#D3F5E7".toColorInt())
+                tv.setTextColor(oscuro)
+            }
+        }
+
+        btnShuffle.setOnClickListener { service.setShuffle(!service.shuffleEnabled) }
+        btnMix.setOnClickListener { service.shuffleUpcoming() }
+
+        val refrescar: () -> Unit = {
+            val actual = service.currentSong
+            if (actual == null) {
+                dialog.dismiss() // se vació la cola o se detuvo la música
+            } else {
+                tvNowTitle.text = SongStore.displayTitle(activity, actual)
+                tvNowArtist.text = SongStore.displayArtist(activity, actual)
+                val siguientes = service.queue.drop(service.currentIndex + 1)
+                adapter.submit(siguientes)
+                tvEmpty.isVisible = siguientes.isEmpty()
+                tvCount.text = activity.getString(R.string.queue_count, service.queue.size)
+                estiloBoton(btnShuffle, service.shuffleEnabled)
+            }
+        }
+        service.addListener(refrescar)
+        dialog.setOnDismissListener { service.removeListener(refrescar) }
+
+        dialog.setContentView(vista)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        refrescar()
+        dialog.show()
+    }
+
+    // ---------- Guardar fragmento A–B como MP3 ----------
+    private var recortando = false
+
+    fun guardarFragmento(song: Song, service: MusicService) {
+        if (!service.abActive) {
+            mensaje("Marca primero los puntos A y B")
+            return
+        }
+        if (recortando) {
+            mensaje("Ya se está guardando otro fragmento")
+            return
+        }
+        val a = service.loopA
+        val b = service.loopB
+        PlaylistDialogs.pedirNombre(
+            activity, "Guardar fragmento como MP3",
+            SongStore.displayTitle(activity, song) + " (fragmento)"
+        ) { nombre -> recortar(song, a, b, nombre) }
+    }
+
+    private fun recortar(song: Song, a: Int, b: Int, nombre: String) {
+        recortando = true
+        val barra = android.widget.ProgressBar(
+            activity, null, android.R.attr.progressBarStyleHorizontal
+        ).apply { max = 100 }
+        val pad = (24 * activity.resources.displayMetrics.density).toInt()
+        val contenedor = FrameLayout(activity).apply {
+            setPadding(pad, pad, pad, 0)
+            addView(barra)
+        }
+        val dialogo = AlertDialog.Builder(activity)
+            .setTitle("Guardando fragmento…")
+            .setView(contenedor)
+            .setCancelable(false)
+            .show()
+
+        Thread {
+            val resultado = try {
+                AudioExtractor.recortar(activity, song.path, a, b, nombre) { pct ->
+                    activity.runOnUiThread { barra.progress = pct }
+                }
+                "Fragmento guardado en Música/Cuicatl"
+            } catch (e: Exception) {
+                Log.w("CuicatlClip", "No se pudo guardar el fragmento", e)
+                "No se pudo guardar el fragmento"
+            }
+            activity.runOnUiThread {
+                recortando = false
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    dialogo.dismiss()
+                    mensaje(resultado)
+                }
+            }
+        }.start()
+    }
+
+    // ---------- Playlists ----------
+    /** Pregunta a qué playlist agregar la canción (o crea una nueva). */
+    fun agregarAPlaylist(song: Song) {
+        val listas = PlaylistStore.all(activity)
+        val opciones = (listas.map { it.name } + "+ Nueva playlist").toTypedArray()
+        AlertDialog.Builder(activity)
+            .setTitle("Agregar a playlist")
+            .setItems(opciones) { _, i ->
+                if (i < listas.size) {
+                    agregar(listas[i], song)
+                } else {
+                    PlaylistDialogs.pedirNombre(activity, "Nueva playlist", "") { nombre ->
+                        agregar(PlaylistStore.create(activity, nombre), song)
+                    }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun agregar(playlist: Playlist, song: Song) {
+        val agregada = PlaylistStore.addSong(activity, playlist.id, song.path)
+        mensaje(
+            if (agregada) "Agregada a \"${playlist.name}\""
+            else "Ya estaba en \"${playlist.name}\""
+        )
+    }
+
+    // ---------- Compartir ----------
+    /** Manda el archivo de audio a otra app; si no está en MediaStore, comparte solo el nombre. */
+    fun compartir(song: Song) {
+        val titulo = SongStore.displayTitle(activity, song)
+        val artista = SongStore.displayArtist(activity, song)
+        val uri = uriDe(song)
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_SUBJECT, titulo)
+            if (uri != null) {
+                // El receptor obtiene permiso temporal de lectura del archivo
+                type = activity.contentResolver.getType(uri) ?: "audio/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = ClipData.newRawUri(titulo, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } else {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, activity.getString(R.string.share_text, titulo, artista))
+            }
+        }
+        activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.share_title)))
     }
 
     fun showSleepDialog(service: MusicService) {
@@ -320,6 +534,7 @@ class SongOptionsHelper(
     private fun terminarBorrado(song: Song) {
         SongStore.forget(activity, song)   // olvida título, artista e imagen guardados
         FavoritesManager.quitar(activity, song)   // la saca de favoritos si estaba
+        PlaylistStore.forgetPath(activity, song.path) // la saca de las playlists
         onDeleted(song)                    // la saca de la cola del reproductor
         val done = deleteDone
         limpiarBorrado()
