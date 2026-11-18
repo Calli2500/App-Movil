@@ -59,6 +59,8 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <activity android:name=".PlaylistDetailActivity" android:exported="false" />
+
         <activity
             android:name=".EditSongActivity"
             android:exported="false" />
@@ -74,4 +76,6 @@
             android:windowSoftInputMode="adjustResize" />
     </application>
 
+
 </manifest>
+

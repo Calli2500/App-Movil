@@ -21,6 +21,7 @@ import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Spinner
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -45,11 +46,13 @@ import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity(), LibraryHost {
 
-    private companion object {
-        const val TAG = "CuicatlLifecycle"
-        const val REQ_AUDIO = 100
-        const val PREFS = "library_prefs"
-        const val KEY_ORDEN = "orden"
+    companion object {
+        /** Pestaña que se abre al entrar: 0 = MP3, 1 = Otros, 2 = Playlists. */
+        const val EXTRA_TAB = "tab"
+        private const val TAG = "CuicatlLifecycle"
+        private const val REQ_AUDIO = 100
+        private const val PREFS = "library_prefs"
+        private const val KEY_ORDEN = "orden"
     }
 
     private enum class Orden(val etiqueta: String) {
@@ -97,10 +100,14 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             musicService = (binder as MusicService.LocalBinder).getService()
             musicService?.addListener(serviceListener)
-            pendingPlay?.let { (songs, index) ->
+            val pendiente = pendingPlay
+            if (pendiente != null) {
                 pendingPlay = null
-                musicService?.playQueue(songs, index)
+                musicService?.playQueue(pendiente.first, pendiente.second)
                 startActivity(Intent(this@MainActivity, PlayerActivity::class.java))
+            } else {
+                // Si no suena nada, retoma la última canción (en pausa, donde se quedó)
+                musicService?.restaurarUltima()
             }
             actualizarMiniPlayer()
         }
@@ -112,6 +119,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
 
     // ---------- CICLO DE VIDA ----------
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.aplicar(this)
         super.onCreate(savedInstanceState)
         Log.d(TAG, "MainActivity.onCreate")
         enableEdgeToEdge()
@@ -151,6 +159,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                     startActivity(Intent(this, FavoritesActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
+                R.id.nav_playlists -> {
+                    findViewById<ViewPager2>(R.id.pagerLibrary).currentItem = 2
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
                 R.id.nav_descargas -> {
                     startActivity(Intent(this, DownloadActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
@@ -159,6 +171,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
+                R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
             true
@@ -170,8 +183,16 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         pager.adapter = LibraryPagerAdapter(supportFragmentManager, lifecycle)
         pager.offscreenPageLimit = 1
         TabLayoutMediator(tabLayout, pager) { tab, position ->
-            tab.text = getString(if (position == 0) R.string.tab_mp3 else R.string.tab_other)
+            tab.text = getString(
+                when (position) {
+                    0 -> R.string.tab_mp3
+                    1 -> R.string.tab_other
+                    else -> R.string.tab_playlists
+                }
+            )
         }.attach()
+        // Si venimos del menú de otra pantalla con "Playlists", se abre esa pestaña
+        pager.setCurrentItem(intent.getIntExtra(EXTRA_TAB, 0).coerceIn(0, 2), false)
 
         // Búsqueda (SearchView) y orden (Spinner)
         svSearch = findViewById(R.id.svLibrary)
@@ -282,9 +303,16 @@ class MainActivity : AppCompatActivity(), LibraryHost {
     // Spinner de orden: ArrayAdapter + OnItemSelectedListener (Lesson 9)
     private fun configurarSpinnerOrden() {
         val spinner = findViewById<Spinner>(R.id.spOrden)
-        val adapter = ArrayAdapter(
+        // El color del texto seleccionado se pone aquí (el textColor del XML no afecta al ArrayAdapter)
+        val adapter = object : ArrayAdapter<String>(
             this, android.R.layout.simple_spinner_item, Orden.entries.map { it.etiqueta }
-        )
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val v = super.getView(position, convertView, parent) as TextView
+                v.setTextColor(ContextCompat.getColor(context, R.color.text_dark))
+                return v
+            }
+        }
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
         spinner.setSelection(orden.ordinal, false) // sin disparar el listener al iniciar
@@ -332,7 +360,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         if (mini.isVisible) snack.setAnchorView(mini)
         if (accion != null) {
             snack.setAction(accion.first) { accion.second() }
-                .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
+                .setActionTextColor(ContextCompat.getColor(this, R.color.snack_action))
         }
         snack.show()
     }

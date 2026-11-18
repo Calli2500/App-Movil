@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:text="Editar canción"
+            android:text="@string/edit_song_title"
             android:textColor="@color/text_dark"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -27,8 +27,8 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center_horizontal"
-            android:background="#D3F5E7"
-            android:contentDescription="Portada" />
+            android:background="@color/chip_bg"
+            android:contentDescription="@string/cd_cover" />
 
         <Button
             android:id="@+id/btnPickImage"
@@ -36,15 +36,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="12dp"
-            android:backgroundTint="#D3F5E7"
-            android:text="Elegir imagen"
+            android:backgroundTint="@color/chip_bg"
+            android:text="@string/edit_pick_image"
             android:textColor="@color/text_dark" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Título"
+            android:text="@string/label_title"
             android:textColor="@color/text_dark"
             android:textStyle="bold" />
 
@@ -52,7 +52,8 @@
             android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Título de la canción"
+            android:hint="@string/hint_song_title"
+            android:textColorHint="@color/text_secondary"
             android:imeOptions="actionNext"
             android:importantForAutofill="no"
             android:inputType="textCapSentences"
@@ -63,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Artista"
+            android:text="@string/label_artist"
             android:textColor="@color/text_dark"
             android:textStyle="bold" />
 
@@ -71,7 +72,8 @@
             android:id="@+id/etArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Artista (vacío = el original)"
+            android:hint="@string/hint_artist_optional"
+            android:textColorHint="@color/text_secondary"
             android:imeOptions="actionDone"
             android:importantForAutofill="no"
             android:inputType="textCapWords"
@@ -92,17 +94,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:backgroundTint="@color/text_dark"
-            android:text="CONTINUAR"
-            android:textColor="@color/white" />
+            android:backgroundTint="@color/accent"
+            android:text="@string/btn_continue"
+            android:textColor="@color/on_accent" />
 
         <Button
             android:id="@+id/btnCancelEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#D3F5E7"
-            android:text="CANCELAR"
+            android:backgroundTint="@color/chip_bg"
+            android:text="@string/btn_cancel_caps"
             android:textColor="@color/text_dark" />
     </LinearLayout>
 </ScrollView>

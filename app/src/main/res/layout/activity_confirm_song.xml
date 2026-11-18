@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content_root_confirm"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,7 +17,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Confirma los cambios"
+            android:text="@string/confirm_title"
             android:textColor="@color/text_dark"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -26,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="20dp"
-            android:text="Revisa que todo esté bien antes de guardar."
+            android:text="@string/confirm_subtitle"
             android:textColor="@color/text_dark" />
 
         <ImageView
@@ -34,14 +35,14 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center_horizontal"
-            android:background="#D3F5E7"
-            android:contentDescription="Portada" />
+            android:background="@color/chip_bg"
+            android:contentDescription="@string/cd_cover" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Nuevo título"
+            android:text="@string/confirm_new_title"
             android:textColor="@color/text_dark"
             android:textStyle="bold" />
 
@@ -66,7 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Artista"
+            android:text="@string/label_artist"
             android:textColor="@color/text_dark"
             android:textStyle="bold" />
 
@@ -86,23 +87,25 @@
 
             <Button
                 android:id="@+id/btnEdit"
+                tools:ignore="ButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="#D3F5E7"
-                android:text="EDITAR"
+                android:backgroundTint="@color/chip_bg"
+                android:text="@string/btn_edit_caps"
                 android:textColor="@color/text_dark" />
 
             <Button
                 android:id="@+id/btnAccept"
+                tools:ignore="ButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/text_dark"
-                android:text="ACEPTAR"
-                android:textColor="@color/white" />
+                android:backgroundTint="@color/accent"
+                android:text="@string/btn_accept_caps"
+                android:textColor="@color/on_accent" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

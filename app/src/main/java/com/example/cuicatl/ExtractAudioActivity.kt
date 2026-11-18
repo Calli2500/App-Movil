@@ -242,7 +242,7 @@ class ExtractAudioActivity : AppCompatActivity() {
 
         Snackbar.make(root, "Audio extraído: ${song.originalTitle}", Snackbar.LENGTH_LONG)
             .setAction("REPRODUCIR") { reproducir(song) }
-            .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
+            .setActionTextColor(ContextCompat.getColor(this, R.color.snack_action))
             .show()
     }
 

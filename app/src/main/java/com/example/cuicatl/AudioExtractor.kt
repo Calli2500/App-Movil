@@ -12,6 +12,7 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.util.Log
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.naman14.androidlame.AndroidLame
@@ -28,6 +29,12 @@ object AudioExtractor {
     class CancelledException : IOException("Extracción cancelada")
 
     private const val ARTISTA = "Cuicatl"
+    private const val TAG = "CuicatlAudio"
+
+    /** Parte del audio que se convierte, en microsegundos. Por defecto, todo. */
+    private class Rango(val inicioUs: Long = 0L, val finUs: Long = Long.MAX_VALUE) {
+        val completo: Boolean get() = inicioUs == 0L && finUs == Long.MAX_VALUE
+    }
 
     // Frecuencias que MP3 admite directamente; otras se convierten a 44100 Hz
     private val SAMPLE_RATES_MP3 = setOf(8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000)
@@ -42,10 +49,38 @@ object AudioExtractor {
         name: String,
         isCancelled: () -> Boolean,
         onProgress: (Int) -> Unit
+    ): String = convertir(
+        context, { it.setDataSource(context, source, null) }, name, Rango(), isCancelled, onProgress
+    )
+
+    /**
+     * Recorta de [startMs] a [endMs] una canción del teléfono y la guarda como .mp3
+     * (fragmento A-B del reproductor). Bloqueante: llamar desde un hilo.
+     */
+    fun recortar(
+        context: Context,
+        sourcePath: String,
+        startMs: Int,
+        endMs: Int,
+        name: String,
+        onProgress: (Int) -> Unit
+    ): String = convertir(
+        context, { it.setDataSource(sourcePath) }, name,
+        Rango(startMs * 1000L, endMs * 1000L), { false }, onProgress
+    )
+
+    /** Cuerpo común: abre la fuente, elige la pista de audio y la convierte a MP3. */
+    private fun convertir(
+        context: Context,
+        abrirFuente: (MediaExtractor) -> Unit,
+        name: String,
+        rango: Rango,
+        isCancelled: () -> Boolean,
+        onProgress: (Int) -> Unit
     ): String {
         val extractor = MediaExtractor()
         try {
-            extractor.setDataSource(context, source, null)
+            abrirFuente(extractor)
 
             var index = -1
             var format: MediaFormat? = null
@@ -57,10 +92,11 @@ object AudioExtractor {
                     break
                 }
             }
-            if (index < 0 || format == null) throw IOException("Este video no tiene pista de audio")
+            if (index < 0 || format == null) throw IOException("No se encontró una pista de audio")
 
             val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
             extractor.selectTrack(index)
+            if (rango.inicioUs > 0) extractor.seekTo(rango.inicioUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
             val durationUs = if (format.containsKey(MediaFormat.KEY_DURATION))
                 format.getLong(MediaFormat.KEY_DURATION) else 0L
             val fileName = limpiarNombre(name)
@@ -68,12 +104,12 @@ object AudioExtractor {
 
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 escribirConMediaStore(
-                    context, extractor, format, mime, durationUs, fileName, titulo,
+                    context, extractor, format, mime, durationUs, rango, fileName, titulo,
                     isCancelled, onProgress
                 )
             } else {
                 escribirEnCarpetaApp(
-                    context, extractor, format, mime, durationUs, fileName, titulo,
+                    context, extractor, format, mime, durationUs, rango, fileName, titulo,
                     isCancelled, onProgress
                 )
             }
@@ -93,6 +129,7 @@ object AudioExtractor {
             r.release()
         }
     } catch (e: Exception) {
+        Log.w(TAG, "No se pudo obtener un cuadro del video", e)
         null
     }
 
@@ -100,7 +137,7 @@ object AudioExtractor {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun escribirConMediaStore(
         context: Context, extractor: MediaExtractor, format: MediaFormat, mime: String,
-        durationUs: Long, fileName: String, titulo: String,
+        durationUs: Long, rango: Rango, fileName: String, titulo: String,
         isCancelled: () -> Boolean, onProgress: (Int) -> Unit
     ): String {
         val resolver = context.contentResolver
@@ -120,7 +157,7 @@ object AudioExtractor {
                 ?: throw IOException("No se pudo escribir el archivo")
             salida.use {
                 transcodificar(
-                    extractor, format, mime, durationUs,
+                    extractor, format, mime, durationUs, rango,
                     BufferedOutputStream(it, 64 * 1024), titulo, isCancelled, onProgress
                 )
             }
@@ -140,7 +177,7 @@ object AudioExtractor {
     // ---------- Android 9 o menor: carpeta privada de la app ----------
     private fun escribirEnCarpetaApp(
         context: Context, extractor: MediaExtractor, format: MediaFormat, mime: String,
-        durationUs: Long, fileName: String, titulo: String,
+        durationUs: Long, rango: Rango, fileName: String, titulo: String,
         isCancelled: () -> Boolean, onProgress: (Int) -> Unit
     ): String {
         val dir = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: context.filesDir
@@ -154,7 +191,7 @@ object AudioExtractor {
         try {
             FileOutputStream(file).use { fos ->
                 transcodificar(
-                    extractor, format, mime, durationUs,
+                    extractor, format, mime, durationUs, rango,
                     BufferedOutputStream(fos, 64 * 1024), titulo, isCancelled, onProgress
                 )
             }
@@ -169,17 +206,17 @@ object AudioExtractor {
     }
 
     /**
-     * Audio del video -> PCM (MediaCodec) -> MP3 (LAME) -> [out].
+     * Audio -> PCM (MediaCodec) -> MP3 (LAME) -> [out]. Solo se conserva lo que cae dentro de [rango].
      */
     private fun transcodificar(
         extractor: MediaExtractor, format: MediaFormat, mime: String, durationUs: Long,
-        out: OutputStream, titulo: String,
+        rango: Rango, out: OutputStream, titulo: String,
         isCancelled: () -> Boolean, onProgress: (Int) -> Unit
     ) {
         val decoder = try {
             MediaCodec.createDecoderByType(mime)
         } catch (e: Exception) {
-            throw IOException("Tu teléfono no puede decodificar el audio de este video («$mime»).")
+            throw IOException("Tu teléfono no puede decodificar el audio de este video («$mime»).", e)
         }
 
         var lame: AndroidLame? = null
@@ -191,6 +228,9 @@ object AudioExtractor {
             var entradaLista = false
             var salidaLista = false
             var canales = 2
+            var rate = 44100
+            // Base del porcentaje: el fragmento, o la duración total si se convierte todo
+            val span = if (rango.finUs != Long.MAX_VALUE) rango.finUs - rango.inicioUs else durationUs
             var mp3buf = ByteArray(0)
             var ultimo = -1
 
@@ -204,7 +244,7 @@ object AudioExtractor {
                         val buf = decoder.getInputBuffer(i)
                             ?: throw IOException("No se pudo leer el audio del video")
                         val size = extractor.readSampleData(buf, 0)
-                        if (size < 0) {
+                        if (size < 0 || extractor.sampleTime > rango.finUs) {
                             decoder.queueInputBuffer(
                                 i, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
                             )
@@ -212,8 +252,8 @@ object AudioExtractor {
                         } else {
                             val t = extractor.sampleTime
                             decoder.queueInputBuffer(i, 0, size, t, 0)
-                            if (durationUs > 0) {
-                                val pct = (t * 100 / durationUs).toInt().coerceIn(0, 99)
+                            if (span > 0) {
+                                val pct = ((t - rango.inicioUs) * 100 / span).toInt().coerceIn(0, 99)
                                 if (pct != ultimo) {
                                     ultimo = pct
                                     onProgress(pct)
@@ -232,7 +272,7 @@ object AudioExtractor {
                         if (enc == null) {
                             // El formato real de salida se conoce al recibir el primer bloque
                             val of = decoder.outputFormat
-                            val rate = of.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                            rate = of.getInteger(MediaFormat.KEY_SAMPLE_RATE)
                             canales = of.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
                             if (of.containsKey(MediaFormat.KEY_PCM_ENCODING) &&
                                 of.getInteger(MediaFormat.KEY_PCM_ENCODING) != AudioFormat.ENCODING_PCM_16BIT
@@ -251,21 +291,39 @@ object AudioExtractor {
                             bb.order(ByteOrder.nativeOrder()).asShortBuffer().get(pcm)
 
                             val porCanal = pcm.size / canales
-                            if (porCanal > 0) {
-                                val necesario = porCanal * 5 / 4 + 7200
+                            // El decoder arranca antes de A: se descarta lo anterior a A y lo posterior a B
+                            val pts = info.presentationTimeUs
+                            val desde = if (pts < rango.inicioUs)
+                                ((rango.inicioUs - pts) * rate / 1_000_000L).toInt().coerceAtMost(porCanal)
+                            else 0
+                            val hasta = if (rango.finUs == Long.MAX_VALUE) porCanal
+                            else ((rango.finUs - pts) * rate / 1_000_000L)
+                                .coerceIn(desde.toLong(), porCanal.toLong()).toInt()
+                            val n = hasta - desde
+
+                            if (n > 0) {
+                                val necesario = n * 5 / 4 + 7200
                                 if (mp3buf.size < necesario) mp3buf = ByteArray(necesario)
 
-                                val bytes = when {
-                                    canales == 1 -> enc.encode(pcm, pcm, porCanal, mp3buf)
-                                    canales == 2 -> enc.encodeBufferInterLeaved(pcm, porCanal, mp3buf)
+                                val bytes = when (canales) {
+                                    1 -> {
+                                        val mono = if (rango.completo) pcm else pcm.copyOfRange(desde, hasta)
+                                        enc.encode(mono, mono, n, mp3buf)
+                                    }
+                                    2 -> {
+                                        val est = if (rango.completo) pcm
+                                        else pcm.copyOfRange(desde * 2, hasta * 2)
+                                        enc.encodeBufferInterLeaved(est, n, mp3buf)
+                                    }
                                     else -> {
                                         // Más de 2 canales: se usan solo los frontales (izq. y der.)
-                                        val estereo = ShortArray(porCanal * 2)
-                                        for (n in 0 until porCanal) {
-                                            estereo[2 * n] = pcm[n * canales]
-                                            estereo[2 * n + 1] = pcm[n * canales + 1]
+                                        val estereo = ShortArray(n * 2)
+                                        for (k in 0 until n) {
+                                            val base = (desde + k) * canales
+                                            estereo[2 * k] = pcm[base]
+                                            estereo[2 * k + 1] = pcm[base + 1]
                                         }
-                                        enc.encodeBufferInterLeaved(estereo, porCanal, mp3buf)
+                                        enc.encodeBufferInterLeaved(estereo, n, mp3buf)
                                     }
                                 }
                                 if (bytes < 0) throw IOException("Error al codificar el MP3 (código $bytes)")
@@ -289,12 +347,12 @@ object AudioExtractor {
             try {
                 lame?.close()
             } catch (e: Exception) {
-                // nada que hacer
+                Log.w(TAG, "No se pudo cerrar LAME", e)
             }
             try {
                 decoder.stop()
             } catch (e: Exception) {
-                // ya estaba detenido
+                Log.w(TAG, "El decodificador ya estaba detenido", e)
             }
             decoder.release()
         }

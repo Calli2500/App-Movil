@@ -1,8 +1,15 @@
 <resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.Cuicatl" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
         <item name="android:windowBackground">@color/verde_cuicatl</item>
+
+        <!-- Menta claro para menú lateral, diálogos y menús emergentes -->
+        <item name="colorSurface">#E3F9EF</item>
+        <item name="colorSurfaceContainerLowest">#F1FCF7</item>
+        <item name="colorSurfaceContainerLow">#E3F9EF</item>
+        <item name="colorSurfaceContainer">#E3F9EF</item>
+        <item name="colorSurfaceContainerHigh">#DDF5E9</item>
+        <item name="colorSurfaceContainerHighest">#D3F5E7</item>
     </style>
 
     <style name="Theme.Cuicatl" parent="Base.Theme.Cuicatl" />

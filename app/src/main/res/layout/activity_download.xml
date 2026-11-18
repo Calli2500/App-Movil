@@ -30,7 +30,8 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/cd_menu"
-                android:src="@android:drawable/ic_menu_sort_by_size" />
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/text_dark" />
 
             <TextView
                 android:layout_width="0dp"
@@ -74,9 +75,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="20dp"
-                    android:backgroundTint="@color/text_dark"
+                    android:backgroundTint="@color/accent"
                     android:text="@string/btn_search_free"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_accent"
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
 
@@ -85,9 +86,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="20dp"
-                    android:backgroundTint="@color/text_dark"
+                    android:backgroundTint="@color/accent"
                     android:text="@string/btn_extract_entry"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_accent"
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
 
@@ -96,7 +97,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:background="#D3F5E7"
+                    android:background="@color/chip_bg"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="12dp"
@@ -113,7 +114,7 @@
                         android:inputType="textUri"
                         android:maxLines="1"
                         android:textColor="@color/text_dark"
-                        android:textColorHint="#555555"
+                        android:textColorHint="@color/text_secondary"
                         android:textSize="14sp" />
 
                     <ImageView
@@ -132,9 +133,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="8dp"
-                    android:backgroundTint="@color/text_dark"
+                    android:backgroundTint="@color/accent"
                     android:text="@string/btn_download_mp3"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_accent"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
@@ -143,8 +144,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    android:text="Pega un enlace directo a un archivo de audio (.mp3, .m4a, .ogg, .wav…)."
-                    android:textColor="#4A4A4A"
+                    android:text="@string/dl_url_intro"
+                    android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
 
                 <TextView

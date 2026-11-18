@@ -4,7 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
-import android.net.Uri
+import android.util.Log
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,6 +17,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.google.android.material.snackbar.Snackbar
 
 class TrackDetailActivity : AppCompatActivity() {
@@ -97,13 +98,13 @@ class TrackDetailActivity : AppCompatActivity() {
         ImageLoader.load(imageUrl, findViewById<ImageView>(R.id.ivDetailCover))
 
         val tvLicense = findViewById<TextView>(R.id.tvDetailLicense)
-        tvLicense.text = "Licencia: ${licenciaCorta()}"
+        tvLicense.text = getString(R.string.td_license, licenciaCorta())
         tvLicense.paintFlags = tvLicense.paintFlags or Paint.UNDERLINE_TEXT_FLAG
         tvLicense.setOnClickListener { abrirLicencia() }
 
         if (!allowed || downloadUrl.isBlank()) {
             btnDownload.isEnabled = false
-            tvStatus.text = "El artista no permite descargar esta canción desde apps."
+            tvStatus.text = getString(R.string.td_not_allowed)
         }
         btnDownload.setOnClickListener { confirmarDescarga() }
     }
@@ -130,7 +131,7 @@ class TrackDetailActivity : AppCompatActivity() {
         btnDownload.isEnabled = false
         progressBar.visibility = View.VISIBLE
         progressBar.isIndeterminate = true
-        tvStatus.text = "Conectando…"
+        tvStatus.text = getString(R.string.td_connecting)
 
         Thread {
             try {
@@ -145,8 +146,9 @@ class TrackDetailActivity : AppCompatActivity() {
                                 progressBar.isIndeterminate = false
                                 progressBar.progress = (done * 100 / total).toInt()
                             }
-                            tvStatus.text = formatSize(done) +
-                                    if (total > 0) " de ${formatSize(total)}" else ""
+                            tvStatus.text = if (total > 0)
+                                getString(R.string.td_progress, formatSize(done), formatSize(total))
+                            else formatSize(done)
                         }
                     }
                 )
@@ -161,7 +163,7 @@ class TrackDetailActivity : AppCompatActivity() {
 
                 ui.post { terminado() }
             } catch (e: Downloader.CancelledException) {
-                // La pantalla se cerró: no hay nada que mostrar
+                Log.d("CuicatlDetail", "Descarga cancelada", e)
             } catch (e: Exception) {
                 ui.post { if (!isDestroyed) fallo(e) }
             }
@@ -172,7 +174,7 @@ class TrackDetailActivity : AppCompatActivity() {
         if (isDestroyed) return
         downloading = false
         progressBar.visibility = View.GONE
-        tvStatus.text = "Guardada en Música/Cuicatl"
+        tvStatus.text = getString(R.string.td_saved)
         btnDownload.isEnabled = true
 
         Snackbar.make(root, "Descargada: $name", Snackbar.LENGTH_LONG)
@@ -182,7 +184,7 @@ class TrackDetailActivity : AppCompatActivity() {
                 )
                 startActivity(i)
             }
-            .setActionTextColor(ContextCompat.getColor(this, R.color.text_dark))
+            .setActionTextColor(ContextCompat.getColor(this, R.color.snack_action))
             .show()
     }
 
@@ -209,8 +211,9 @@ class TrackDetailActivity : AppCompatActivity() {
     private fun abrirLicencia() {
         if (licenseUrl.isBlank()) return
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(licenseUrl)))
+            startActivity(Intent(Intent.ACTION_VIEW, licenseUrl.toUri()))
         } catch (e: ActivityNotFoundException) {
+            Log.w("CuicatlDetail", "No hay navegador para abrir la licencia", e)
             Snackbar.make(root, "No hay un navegador para abrir el enlace", Snackbar.LENGTH_SHORT).show()
         }
     }

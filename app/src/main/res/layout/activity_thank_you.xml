@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="✓"
+        android:text="@string/symbol_check"
         android:textColor="@color/text_dark"
         android:textSize="72sp"
         android:textStyle="bold" />
@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="¡Listo!"
+        android:text="@string/thanks_done"
         android:textColor="@color/text_dark"
         android:textSize="28sp"
         android:textStyle="bold" />
@@ -39,8 +39,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/text_dark"
+        android:backgroundTint="@color/accent"
         android:paddingHorizontal="28dp"
-        android:text="VOLVER A LA BIBLIOTECA"
-        android:textColor="@color/white" />
+        android:text="@string/btn_back_library"
+        android:textColor="@color/on_accent" />
 </LinearLayout>

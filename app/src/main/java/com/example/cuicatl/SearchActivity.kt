@@ -1,6 +1,5 @@
 package com.example.cuicatl
 
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -66,7 +65,7 @@ class SearchActivity : AppCompatActivity() {
         offset = 0
         container.removeAllViews()
         tvStatus.text = ""
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(etQuery.windowToken, 0)
         cargarPagina()
     }
@@ -104,10 +103,10 @@ class SearchActivity : AppCompatActivity() {
 
     private fun mostrarError(e: Exception) {
         progress.visibility = View.GONE
-        if (offset == 0) tvStatus.text = "No se pudo cargar"
+        if (offset == 0) tvStatus.text = getString(R.string.search_error)
         Snackbar.make(root, e.message ?: "Error de conexión", Snackbar.LENGTH_LONG)
             .setAction("REINTENTAR") { cargarPagina() }
-            .setActionTextColor(ContextCompat.getColor(this, R.color.bg_mint))
+            .setActionTextColor(ContextCompat.getColor(this, R.color.snack_action))
             .show()
     }
 
