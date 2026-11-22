@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "163590490777",
+    "project_id": "cuicatl-e573a",
+    "storage_bucket": "cuicatl-e573a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163590490777:android:118edb1fac40e5be9e8608",
+        "android_client_info": {
+          "package_name": "com.example.cuicatl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg2eoFoIjv43tMjsVZw0WfVg9LFVee1WQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
