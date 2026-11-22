@@ -208,6 +208,7 @@ class PlayerActivity : AppCompatActivity() {
         // Menú lateral (bloqueado: choca con el gesto de cerrar)
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayoutPlayer)
         val navView = findViewById<NavigationView>(R.id.nav_view_player)
+        DrawerHeader.enlazar(drawerLayout, navView)
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
 
         navView.setNavigationItemSelectedListener { menuItem ->
@@ -230,6 +231,7 @@ class PlayerActivity : AppCompatActivity() {
                     startActivity(Intent(this, DownloadActivity::class.java))
                     finish()
                 }
+                R.id.nav_cuenta -> startActivity(Intent(this, AccountActivity::class.java))
                 R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }

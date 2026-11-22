@@ -95,6 +95,7 @@ class FavoritesActivity : AppCompatActivity() {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     finish()
                 }
+                R.id.nav_cuenta -> startActivity(Intent(this, AccountActivity::class.java))
                 R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }

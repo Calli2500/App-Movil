@@ -186,4 +186,32 @@
     <string name="search_error">No se pudo cargar</string>
 
     <string name="menu_playlists">Playlists</string>
+
+    <string name="menu_cuenta">Cuenta</string>
+    <string name="acct_title">Cuenta</string>
+    <string name="acct_subtitle_login">Inicia sesión para ver tu perfil</string>
+    <string name="acct_subtitle_register">Crea tu cuenta</string>
+    <string name="acct_subtitle_session">Sesión iniciada</string>
+    <string name="acct_hint_name">Nombre completo</string>
+    <string name="acct_hint_city">Ciudad</string>
+    <string name="acct_hint_country">País</string>
+    <string name="acct_hint_phone">Teléfono</string>
+    <string name="acct_hint_email">Correo electrónico</string>
+    <string name="acct_hint_password">Contraseña (mínimo 6 caracteres)</string>
+    <string name="acct_btn_login">Iniciar sesión</string>
+    <string name="acct_btn_register">Crear cuenta</string>
+    <string name="acct_btn_logout">Cerrar sesión</string>
+    <string name="acct_switch_to_register">¿No tienes cuenta? Crear una</string>
+    <string name="acct_switch_to_login">¿Ya tienes cuenta? Iniciar sesión</string>
+    <string name="acct_hello">Hola, %1$s</string>
+    <string name="acct_optional_note">La cuenta es opcional: el reproductor funciona igual sin iniciar sesión.</string>
+    <string name="acct_back">Volver</string>
+    <string name="acct_err_name">Escribe tu nombre.</string>
+    <string name="acct_err_email">Escribe un correo válido.</string>
+    <string name="acct_err_password">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="acct_err_credentials">Correo o contraseña incorrectos.</string>
+    <string name="acct_err_exists">Ya existe una cuenta con ese correo.</string>
+    <string name="acct_err_network">Sin conexión. Revisa tu internet.</string>
+    <string name="acct_err_generic">Ocurrió un error. Inténtalo de nuevo.</string>
+    <string name="acct_err_profile">La cuenta se creó, pero no se pudo guardar el perfil.</string>
 </resources>

@@ -35,6 +35,10 @@
                 android:icon="@android:drawable/ic_media_play"
                 android:title="@string/menu_reproductor" />
             <item
+                android:id="@+id/nav_cuenta"
+                android:icon="@android:drawable/ic_menu_myplaces"
+                android:title="@string/menu_cuenta" />
+            <item
                 android:id="@+id/nav_tema"
                 android:icon="@android:drawable/ic_menu_view"
                 android:title="@string/menu_tema" />

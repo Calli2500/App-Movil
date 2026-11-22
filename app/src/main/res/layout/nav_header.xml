@@ -15,7 +15,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:contentDescription="@string/cd_nav_logo"
-            android:src="@mipmap/cuicatl_logo"/>
+            android:src="@mipmap/cuicatl_logo" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,6 +32,16 @@
             android:text="@string/nav_header_subtitle"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvNavUsuario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_dark"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </LinearLayout>
 
     <!-- Línea divisoria de 1dp (como en el Lab 9) -->
