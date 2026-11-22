@@ -47,6 +47,7 @@ class DownloadActivity : AppCompatActivity() {
         // Menú lateral
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayoutDownload)
         val navView = findViewById<NavigationView>(R.id.nav_view_download)
+        DrawerHeader.enlazar(drawerLayout, navView)
         findViewById<ImageView>(R.id.btnMenu).setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }

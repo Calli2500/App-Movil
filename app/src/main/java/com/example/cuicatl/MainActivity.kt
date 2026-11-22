@@ -148,6 +148,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         // Menú lateral
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navView = findViewById<NavigationView>(R.id.nav_view)
+        DrawerHeader.enlazar(drawerLayout, navView)
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
 
         btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
@@ -171,6 +172,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                     startActivity(Intent(this, PlayerActivity::class.java))
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
+                R.id.nav_cuenta -> startActivity(Intent(this, AccountActivity::class.java))
                 R.id.nav_tema -> ThemeHelper.mostrarDialogo(this)
                 R.id.nav_acerca -> startActivity(Intent(this, AboutActivity::class.java))
             }
