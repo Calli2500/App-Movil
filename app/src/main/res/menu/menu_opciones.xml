@@ -18,6 +18,10 @@
                 android:id="@+id/nav_playlists"
                 android:icon="@android:drawable/ic_menu_slideshow"
                 android:title="@string/menu_playlists" />
+            <item
+                android:id="@+id/nav_videos_ocultos"
+                android:icon="@android:drawable/ic_menu_view"
+                android:title="@string/menu_videos_ocultos" />
         </menu>
     </item>
 

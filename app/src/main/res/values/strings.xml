@@ -7,8 +7,6 @@
     <!-- Secciones -->
     <string name="section_mp3">ARCHIVOS MP3</string>
     <string name="count_mp3">4 canciones</string>
-    <string name="section_other">OTROS FORMATOS</string>
-    <string name="count_other">3 archivos</string>
 
     <!-- Datos de canción por defecto -->
     <string name="song_1_title">Viento del Este</string>
@@ -107,7 +105,6 @@
     <string name="cd_sort_spinner">Ordenar por</string>
 
     <string name="tab_mp3">MP3</string>
-    <string name="tab_other">Otros formatos</string>
     <string name="tab_count">%1$s (%2$s)</string>
     <string name="lib_sin_archivos">Sin archivos</string>
     <string name="lib_sin_resultados">Sin resultados</string>
@@ -214,4 +211,25 @@
     <string name="acct_err_network">Sin conexión. Revisa tu internet.</string>
     <string name="acct_err_generic">Ocurrió un error. Inténtalo de nuevo.</string>
     <string name="acct_err_profile">La cuenta se creó, pero no se pudo guardar el perfil.</string>
+    <string name="acct_forgot">¿Olvidaste tu contraseña?</string>
+    <string name="acct_reset_sent">Si el correo tiene una cuenta, te enviamos un enlace para restablecer la contraseña. Revisa también el spam.</string>
+    <string name="acct_edit_profile">Editar perfil</string>
+    <string name="acct_edit_title">Editar perfil</string>
+    <string name="acct_btn_save">Guardar</string>
+    <string name="acct_cancel">Cancelar</string>
+    <string name="acct_profile_saved">Perfil actualizado</string>
+    <string name="acct_err_save">No se pudo guardar el perfil. Inténtalo de nuevo.</string>
+    <string name="tab_videos">Videos</string>
+    <string name="lib_sin_videos">Sin videos MP4</string>
+    <string name="cd_video_thumb">Miniatura del video</string>
+    <string name="video_opt_rename">Renombrar</string>
+    <string name="video_opt_restore">Restaurar nombre original</string>
+    <string name="video_opt_hide">Ocultar de la lista</string>
+    <string name="video_rename_title">Renombrar video</string>
+    <string name="video_hidden_msg">Video oculto</string>
+    <string name="video_undo">DESHACER</string>
+    <string name="video_hidden_title">Videos ocultos</string>
+    <string name="video_hidden_none">No hay videos ocultos</string>
+    <string name="video_show">Mostrar</string>
+    <string name="menu_videos_ocultos">Videos ocultos</string>
 </resources>

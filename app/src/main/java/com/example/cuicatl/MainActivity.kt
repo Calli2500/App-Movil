@@ -2,6 +2,7 @@ package com.example.cuicatl
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.ContentUris
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -13,20 +14,22 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.Settings
+import android.text.InputType
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Spinner
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
@@ -38,46 +41,74 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
-import com.google.android.material.navigation.NavigationView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.textfield.TextInputEditText
 
-class MainActivity : AppCompatActivity(), LibraryHost {
+/**
+ * Pantalla principal de CUICATL.
+ *
+ * Qué hace esta clase (de arriba hacia abajo):
+ *  1. Muestra la biblioteca en 3 pestañas: MP3, Videos y Playlists.
+ *  2. Lee del teléfono (MediaStore) los MP3 y los videos MP4; cualquier otro formato se ignora.
+ *  3. Maneja el menú lateral, la búsqueda, el orden y el mini reproductor.
+ *  4. Pide los permisos de lectura de audio y video.
+ *  5. Permite renombrar y ocultar videos (solo dentro de la app, ver [VideoPrefs]).
+ *
+ * Implementa dos interfaces para que los fragments de las pestañas le pidan cosas:
+ *  - [LibraryHost]: clics sobre canciones (pestaña MP3).
+ *  - [VideoHost]: clics sobre videos (pestaña Videos).
+ */
+class MainActivity : AppCompatActivity(), LibraryHost, VideoHost {
+
+    // =====================================================================
+    // CONSTANTES Y TIPOS
+    // =====================================================================
 
     companion object {
-        /** Pestaña que se abre al entrar: 0 = MP3, 1 = Otros, 2 = Playlists. */
+        /** Pestaña que se abre al entrar: 0 = MP3, 1 = Videos, 2 = Playlists. */
         const val EXTRA_TAB = "tab"
         private const val TAG = "CuicatlLifecycle"
-        private const val REQ_AUDIO = 100
+        private const val REQ_AUDIO = 100 // código de la solicitud de permisos (audio + video)
         private const val PREFS = "library_prefs"
         private const val KEY_ORDEN = "orden"
     }
 
+    /** Criterios de orden disponibles en el Spinner. */
     private enum class Orden(val etiqueta: String) {
         NOMBRE_AZ("Nombre (A–Z)"),
         NOMBRE_ZA("Nombre (Z–A)"),
         RECIENTES("Más recientes"),
-        ARTISTA("Artista")
+        ARTISTA("Artista") // solo aplica a MP3: los videos no tienen artista
     }
 
+    // =====================================================================
+    // ESTADO
+    // =====================================================================
+
+    // --- Servicio de música (reproduce en segundo plano) ---
     private var musicService: MusicService? = null
     private var serviceBound = false
-    private var pendingPlay: Pair<List<Song>, Int>? = null
+    private var pendingPlay: Pair<List<Song>, Int>? = null // canción pedida antes de conectar el servicio
     private lateinit var optionsHelper: SongOptionsHelper
     private val uiHandler = Handler(Looper.getMainLooper())
 
-    // Lo que hay en el teléfono (sin filtrar) y la fecha en que se agregó cada archivo
+    // --- Lo que hay en el teléfono, SIN filtrar ni ordenar ---
     private var allMp3: List<Song> = emptyList()
-    private var allOthers: List<Song> = emptyList()
-    private val dateAdded = mutableMapOf<String, Long>()
+    private var allVideos: List<VideoItem> = emptyList()      // videos visibles (sin los ocultos)
+    private var videosOcultos: List<VideoItem> = emptyList()  // videos que el usuario ocultó
+    private val dateAdded = mutableMapOf<String, Long>()      // ruta del MP3 -> fecha en que se agregó
 
+    // --- Filtros de la lista ---
     private var orden = Orden.NOMBRE_AZ
     private var consulta = ""
     private lateinit var svSearch: SearchView
     private lateinit var tabLayout: TabLayout
-    private val vm: LibraryViewModel by viewModels()
+    private val vm: LibraryViewModel by viewModels() // comparte las listas con los fragments
 
     // El botón "atrás" cierra primero la búsqueda (solo está activo mientras se ve)
     private val cerrarBusquedaCallback = object : OnBackPressedCallback(false) {
@@ -87,8 +118,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
     private val notifPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* sin acción */ }
 
+    // Se ejecuta cuando el servicio avisa que cambió la canción o el estado de reproducción
     private val serviceListener: () -> Unit = { actualizarMiniPlayer() }
 
+    // Actualiza la barra de progreso del mini reproductor cada 500 ms
     private val progressRunnable = object : Runnable {
         override fun run() {
             actualizarProgresoMini()
@@ -96,12 +129,14 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         }
     }
 
+    // Conexión con el servicio de música
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             musicService = (binder as MusicService.LocalBinder).getService()
             musicService?.addListener(serviceListener)
             val pendiente = pendingPlay
             if (pendiente != null) {
+                // El usuario tocó una canción antes de que el servicio estuviera listo
                 pendingPlay = null
                 musicService?.playQueue(pendiente.first, pendiente.second)
                 startActivity(Intent(this@MainActivity, PlayerActivity::class.java))
@@ -117,7 +152,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         }
     }
 
-    // ---------- CICLO DE VIDA ----------
+    // =====================================================================
+    // CICLO DE VIDA
+    // =====================================================================
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.aplicar(this)
         super.onCreate(savedInstanceState)
@@ -126,11 +164,12 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         setContentView(R.layout.activity_main)
 
         optionsHelper = SongOptionsHelper(this) { song -> musicService?.removeSong(song.path) }
-        // Orden guardado
+
+        // Orden guardado la última vez
         val guardado = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_ORDEN, 0)
         orden = Orden.entries.getOrElse(guardado) { Orden.NOMBRE_AZ }
 
-        // Ajuste de márgenes del sistema
+        // --- Ajuste de márgenes del sistema (barra de estado y de navegación) ---
         val contentRoot = findViewById<View>(R.id.content_root)
         val padL = contentRoot.paddingLeft
         val padT = contentRoot.paddingTop
@@ -145,10 +184,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
             WindowInsetsCompat.CONSUMED
         }
 
-        // Menú lateral
+        // --- Menú lateral (drawer) ---
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navView = findViewById<NavigationView>(R.id.nav_view)
-        DrawerHeader.enlazar(drawerLayout, navView)
+        DrawerHeader.enlazar(drawerLayout, navView) // nombre del usuario en el encabezado
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
 
         btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
@@ -162,6 +201,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                 }
                 R.id.nav_playlists -> {
                     findViewById<ViewPager2>(R.id.pagerLibrary).currentItem = 2
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_videos_ocultos -> {
+                    mostrarVideosOcultos()
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
                 R.id.nav_descargas -> {
@@ -179,7 +222,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
             true
         }
 
-        // Pestañas: TabLayout + ViewPager2 con un fragment por pestaña (Lesson 9)
+        // --- Pestañas: TabLayout + ViewPager2 con un fragment por pestaña (Lesson 9) ---
         tabLayout = findViewById(R.id.tabLayout)
         val pager = findViewById<ViewPager2>(R.id.pagerLibrary)
         pager.adapter = LibraryPagerAdapter(supportFragmentManager, lifecycle)
@@ -188,7 +231,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
             tab.text = getString(
                 when (position) {
                     0 -> R.string.tab_mp3
-                    1 -> R.string.tab_other
+                    1 -> R.string.tab_videos
                     else -> R.string.tab_playlists
                 }
             )
@@ -196,7 +239,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         // Si venimos del menú de otra pantalla con "Playlists", se abre esa pestaña
         pager.setCurrentItem(intent.getIntExtra(EXTRA_TAB, 0).coerceIn(0, 2), false)
 
-        // Búsqueda (SearchView) y orden (Spinner)
+        // --- Búsqueda (SearchView) y orden (Spinner) ---
         svSearch = findViewById(R.id.svLibrary)
         onBackPressedDispatcher.addCallback(this, cerrarBusquedaCallback)
         findViewById<ImageView>(R.id.btnSearch).setOnClickListener { alternarBusqueda() }
@@ -215,7 +258,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         })
         configurarSpinnerOrden()
 
-        // Controles del mini reproductor
+        // --- Controles del mini reproductor ---
         findViewById<View>(R.id.miniPlayer).setOnClickListener {
             startActivity(Intent(this, PlayerActivity::class.java))
         }
@@ -224,11 +267,13 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         findViewById<ImageView>(R.id.btnMiniNext).setOnClickListener { musicService?.next() }
         findViewById<ImageView>(R.id.btnMiniClose).setOnClickListener { musicService?.stopMusic() }
 
-        // Si ya hay permiso, la lista se carga en onResume; si no, se pide aquí
-        if (!tienePermisoAudio()) {
-            ActivityCompat.requestPermissions(this, arrayOf(permisoAudio()), REQ_AUDIO)
+        // --- Permisos ---
+        // Si ya hay permiso, las listas se cargan en onResume; si no, se piden aquí
+        if (!tienePermisoAudio() || !tienePermisoVideo()) {
+            ActivityCompat.requestPermissions(this, permisosBiblioteca(), REQ_AUDIO)
         }
 
+        // Notificaciones (necesarias para el control de música en Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED
@@ -246,11 +291,12 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         uiHandler.post(progressRunnable)
     }
 
-    // Cada vez que se vuelve a esta pantalla (de editar, descargar o extraer) la lista se relee
+    // Cada vez que se vuelve a esta pantalla (de editar, descargar o extraer) las listas se releen
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "MainActivity.onResume")
         if (tienePermisoAudio()) cargarCancionesLocales()
+        if (tienePermisoVideo()) cargarVideos()
         actualizarMiniPlayer()
     }
 
@@ -276,7 +322,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         Log.d(TAG, "MainActivity.onDestroy")
     }
 
-    // ---------- BÚSQUEDA Y ORDEN ----------
+    // =====================================================================
+    // BÚSQUEDA Y ORDEN
+    // =====================================================================
+
     private fun alternarBusqueda() {
         if (svSearch.isVisible) cerrarBusqueda() else abrirBusqueda()
     }
@@ -333,6 +382,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         }
     }
 
+    /** Ordena los MP3 según el criterio elegido en el Spinner. */
     private fun ordenar(songs: List<Song>): List<Song> = when (orden) {
         Orden.NOMBRE_AZ -> songs.sortedBy { SongStore.displayTitle(this, it).lowercase() }
         Orden.NOMBRE_ZA -> songs.sortedByDescending { SongStore.displayTitle(this, it).lowercase() }
@@ -342,6 +392,7 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         )
     }
 
+    /** ¿El MP3 coincide con el texto buscado? (título, título original o artista) */
     private fun coincide(song: Song): Boolean {
         if (consulta.isEmpty()) return true
         val q = consulta.lowercase()
@@ -350,7 +401,22 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                 SongStore.displayArtist(this, song).lowercase().contains(q)
     }
 
-    // ---------- MENSAJES ----------
+    /** ¿El video coincide con el texto buscado? (solo por título) */
+    private fun coincideVideo(video: VideoItem): Boolean =
+        consulta.isEmpty() || video.title.lowercase().contains(consulta.lowercase())
+
+    /** Ordena los videos. Como no tienen artista, "Artista" se trata como A–Z. */
+    private fun ordenarVideos(videos: List<VideoItem>): List<VideoItem> = when (orden) {
+        Orden.NOMBRE_ZA -> videos.sortedByDescending { it.title.lowercase() }
+        Orden.RECIENTES -> videos.sortedByDescending { it.dateAdded }
+        else -> videos.sortedBy { it.title.lowercase() }
+    }
+
+    // =====================================================================
+    // MENSAJES (Snackbar)
+    // =====================================================================
+
+    /** Muestra un mensaje inferior, con un botón de acción opcional (por ejemplo "DESHACER"). */
     private fun mostrarMensaje(
         texto: String,
         duracion: Int = Snackbar.LENGTH_SHORT,
@@ -367,7 +433,10 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         snack.show()
     }
 
-    // ---------- MINI PLAYER ----------
+    // =====================================================================
+    // MINI REPRODUCTOR
+    // =====================================================================
+
     private fun actualizarMiniPlayer() {
         val mini = findViewById<View>(R.id.miniPlayer)
         val service = musicService
@@ -393,7 +462,12 @@ class MainActivity : AppCompatActivity(), LibraryHost {
             if (dur > 0) (s.position * 100L / dur).toInt() else 0
     }
 
-    // ---------- PERMISOS ----------
+    // =====================================================================
+    // PERMISOS
+    // Android 13+ separa los permisos por tipo (audio / video).
+    // En Android 12 o menos existe un solo permiso de almacenamiento.
+    // =====================================================================
+
     private fun permisoAudio(): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_AUDIO
@@ -404,15 +478,36 @@ class MainActivity : AppCompatActivity(), LibraryHost {
     private fun tienePermisoAudio(): Boolean =
         ContextCompat.checkSelfPermission(this, permisoAudio()) == PackageManager.PERMISSION_GRANTED
 
+    private fun permisoVideo(): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_VIDEO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+    private fun tienePermisoVideo(): Boolean =
+        ContextCompat.checkSelfPermission(this, permisoVideo()) == PackageManager.PERMISSION_GRANTED
+
+    /** Audio y video a la vez (en Android 12 o menos es un solo permiso de almacenamiento). */
+    private fun permisosBiblioteca(): Array<String> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+    /** Respuesta del usuario al cuadro de permisos: carga lo que ya se pueda leer. */
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != REQ_AUDIO) return
 
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            cargarCancionesLocales()
-        } else {
+        if (tienePermisoAudio()) cargarCancionesLocales()
+        if (tienePermisoVideo()) cargarVideos()
+
+        // Sin permiso de audio no hay música que mostrar: se avisa y se ofrece ir a Ajustes
+        if (!tienePermisoAudio()) {
             mostrarMensaje(
                 "Sin permiso de audio no puedo mostrar tu música",
                 Snackbar.LENGTH_LONG,
@@ -428,8 +523,12 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         }
     }
 
-    // ---------- LISTA DE CANCIONES ----------
-    // Lee el teléfono (MediaStore) y guarda todo sin filtrar; luego se dibuja con mostrarLista()
+    // =====================================================================
+    // LECTURA DEL TELÉFONO (MediaStore)
+    // Primero se lee todo y se guarda sin filtrar; luego mostrarLista() lo dibuja.
+    // =====================================================================
+
+    /** Lee los MP3 del teléfono. Cualquier otro formato de audio se ignora. */
     private fun cargarCancionesLocales() {
         val projection = arrayOf(
             MediaStore.Audio.Media.TITLE,
@@ -448,7 +547,6 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         )
 
         val mp3Songs = mutableListOf<Song>()
-        val otherSongs = mutableListOf<Song>()
         dateAdded.clear()
 
         cursor?.use {
@@ -463,46 +561,102 @@ class MainActivity : AppCompatActivity(), LibraryHost {
                 val artist = it.getString(artistCol) ?: "Desconocido"
                 val path = it.getString(dataCol) ?: ""
                 val mimeType = it.getString(mimeCol) ?: ""
-                val song = Song(path, title, artist)
-                dateAdded[path] = it.getLong(dateCol)
 
+                // Solo MP3: cualquier otro formato de audio se ignora
                 if (mimeType.contains("audio/mpeg") || path.endsWith(".mp3", ignoreCase = true)) {
-                    mp3Songs.add(song)
-                } else {
-                    otherSongs.add(song)
+                    mp3Songs.add(Song(path, title, artist))
+                    dateAdded[path] = it.getLong(dateCol)
                 }
             }
         }
 
         allMp3 = mp3Songs
-        allOthers = otherSongs
         mostrarLista()
     }
 
-    // Aplica búsqueda y orden y se la pasa a los fragments (RecyclerView) por el ViewModel
+    /**
+     * Lee los videos MP4 del teléfono (los demás formatos de video se ignoran).
+     * Separa los visibles de los ocultos y aplica los nombres personalizados guardados en [VideoPrefs].
+     */
+    private fun cargarVideos() {
+        val projection = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.TITLE,
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.DATE_ADDED
+        )
+        val ocultos = VideoPrefs.ocultos(this)
+        val visibles = mutableListOf<VideoItem>()
+        val escondidos = mutableListOf<VideoItem>()
+
+        contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            "${MediaStore.Video.Media.MIME_TYPE} = ?", // solo MP4
+            arrayOf("video/mp4"),
+            null
+        )?.use {
+            val idCol = it.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val titleCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
+            val durCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val dateCol = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+
+            while (it.moveToNext()) {
+                val id = it.getLong(idCol)
+                val original = it.getString(titleCol) ?: "Video"
+                val video = VideoItem(
+                    id = id,
+                    uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id),
+                    title = VideoPrefs.nombre(this, id) ?: original, // nombre personalizado, si existe
+                    durationMs = it.getLong(durCol),
+                    dateAdded = it.getLong(dateCol),
+                    originalTitle = original
+                )
+                if (id in ocultos) escondidos.add(video) else visibles.add(video)
+            }
+        }
+
+        allVideos = visibles
+        videosOcultos = escondidos
+        mostrarLista()
+    }
+
+    // =====================================================================
+    // DIBUJAR LAS LISTAS
+    // =====================================================================
+
+    /**
+     * Aplica búsqueda y orden a lo leído del teléfono, se lo pasa a los fragments
+     * (a través del ViewModel) y actualiza los contadores de las pestañas.
+     */
     private fun mostrarLista() {
         val mp3 = ordenar(allMp3.filter { coincide(it) })
-        val otros = ordenar(allOthers.filter { coincide(it) })
+        val videos = ordenarVideos(allVideos.filter { coincideVideo(it) })
 
         vm.consulta = consulta
         vm.mp3.value = mp3
-        vm.otros.value = otros
+        vm.videos.value = videos
 
         tabLayout.getTabAt(0)?.text = getString(
             R.string.tab_count, getString(R.string.tab_mp3), cuenta(mp3.size, allMp3.size)
         )
         tabLayout.getTabAt(1)?.text = getString(
-            R.string.tab_count, getString(R.string.tab_other), cuenta(otros.size, allOthers.size)
+            R.string.tab_count, getString(R.string.tab_videos), cuenta(videos.size, allVideos.size)
         )
     }
 
+    /** Texto del contador de la pestaña: "5" normalmente, "2/5" mientras se busca. */
     private fun cuenta(mostrados: Int, total: Int): String =
         if (consulta.isNotEmpty()) "$mostrados/$total" else "$mostrados"
 
-    // ---------- LibraryHost: lo que piden los fragments ----------
+    // =====================================================================
+    // LibraryHost: lo que piden los fragments de la pestaña MP3
+    // =====================================================================
+
     override fun onSongClick(songs: List<Song>, index: Int) {
         val service = musicService
         if (service == null) {
+            // El servicio aún no está conectado: se guarda la petición y se atiende al conectar
             pendingPlay = songs to index
             mostrarMensaje("Conectando reproductor…")
         } else {
@@ -522,5 +676,105 @@ class MainActivity : AppCompatActivity(), LibraryHost {
         val esFavorita = FavoritesManager.alternarFavorito(this, song)
         mostrarMensaje(if (esFavorita) "Agregada a favoritos" else "Eliminada de favoritos")
         return esFavorita
+    }
+
+    // =====================================================================
+    // VideoHost: lo que piden los fragments de la pestaña Videos
+    // =====================================================================
+
+    /** Toque corto: abre el video a pantalla completa. */
+    override fun onVideoClick(video: VideoItem) {
+        // La música se pausa mientras se ve el video
+        if (musicService?.isPlaying == true) musicService?.togglePlayPause()
+        startActivity(
+            Intent(this, VideoPlayerActivity::class.java)
+                .putExtra(VideoPlayerActivity.EXTRA_URI, video.uri.toString())
+                .putExtra(VideoPlayerActivity.EXTRA_TITLE, video.title)
+        )
+    }
+
+    /** Toque largo: menú con Renombrar, Restaurar nombre (si fue renombrado) y Ocultar. */
+    override fun onVideoLongClick(video: VideoItem) {
+        val renombrado = video.title != video.originalTitle
+
+        // Cada opción es un par: (texto que se muestra, acción que se ejecuta)
+        val opciones = mutableListOf<Pair<String, () -> Unit>>()
+        opciones.add(getString(R.string.video_opt_rename) to { pedirNombreVideo(video) })
+        if (renombrado) {
+            opciones.add(getString(R.string.video_opt_restore) to {
+                VideoPrefs.restaurarNombre(this, video.id)
+                cargarVideos()
+            })
+        }
+        opciones.add(getString(R.string.video_opt_hide) to {
+            VideoPrefs.ocultar(this, video.id)
+            cargarVideos()
+            // Aviso con opción de deshacer
+            mostrarMensaje(
+                getString(R.string.video_hidden_msg),
+                Snackbar.LENGTH_LONG,
+                getString(R.string.video_undo) to {
+                    VideoPrefs.mostrar(this, video.id)
+                    cargarVideos()
+                }
+            )
+        })
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(video.title)
+            .setItems(opciones.map { it.first }.toTypedArray()) { _, i -> opciones[i].second() }
+            .show()
+    }
+
+    /** Diálogo con un campo de texto para escribir el nuevo nombre del video. */
+    private fun pedirNombreVideo(video: VideoItem) {
+        val campo = TextInputEditText(this).apply {
+            setText(video.title)
+            setSelectAllOnFocus(true)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            maxLines = 1
+        }
+        // Contenedor con margen para que el campo no quede pegado a los bordes del diálogo
+        val margen = (24 * resources.displayMetrics.density).toInt()
+        val contenedor = FrameLayout(this).apply {
+            setPadding(margen, margen / 2, margen, 0)
+            addView(campo)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.video_rename_title)
+            .setView(contenedor)
+            .setPositiveButton(R.string.acct_btn_save) { _, _ ->
+                val nuevo = campo.text?.toString().orEmpty().trim()
+                // Si lo dejan vacío o igual al original, se vuelve al nombre del archivo
+                if (nuevo.isEmpty() || nuevo == video.originalTitle) {
+                    VideoPrefs.restaurarNombre(this, video.id)
+                } else {
+                    VideoPrefs.renombrar(this, video.id, nuevo)
+                }
+                cargarVideos()
+            }
+            .setNegativeButton(R.string.acct_cancel, null)
+            .show()
+    }
+
+    /** Diálogo (desde el menú lateral) para volver a mostrar videos que se habían ocultado. */
+    private fun mostrarVideosOcultos() {
+        val ocultos = videosOcultos
+        if (ocultos.isEmpty()) {
+            mostrarMensaje(getString(R.string.video_hidden_none))
+            return
+        }
+        val marcados = BooleanArray(ocultos.size) // qué videos marcó el usuario para mostrar
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.video_hidden_title)
+            .setMultiChoiceItems(ocultos.map { it.title }.toTypedArray(), marcados) { _, i, check ->
+                marcados[i] = check
+            }
+            .setPositiveButton(R.string.video_show) { _, _ ->
+                ocultos.forEachIndexed { i, v -> if (marcados[i]) VideoPrefs.mostrar(this, v.id) }
+                cargarVideos()
+            }
+            .setNegativeButton(R.string.acct_cancel, null)
+            .show()
     }
 }

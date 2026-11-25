@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="12dp">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/acct_hint_name">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEdNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName|textCapWords"
+            android:maxLines="1"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/acct_hint_city">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEdCiudad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:inputType="textCapWords"
+            android:maxLines="1"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/acct_hint_country">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEdPais"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:inputType="textCapWords"
+            android:maxLines="1"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/acct_hint_phone">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEdTelefono"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:inputType="phone"
+            android:maxLines="1"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>
