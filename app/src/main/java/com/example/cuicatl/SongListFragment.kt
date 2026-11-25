@@ -38,7 +38,7 @@ class SongListFragment : Fragment(R.layout.fragment_song_list) {
         rv.adapter = adapter
         rv.itemAnimator = null
 
-        val datos = if (formato == FORMATO_MP3) vm.mp3 else vm.otros
+        val datos = vm.mp3
         datos.observe(viewLifecycleOwner) { songs ->
             adapter.submitList(songs)
             tvEmpty.isVisible = songs.isEmpty()

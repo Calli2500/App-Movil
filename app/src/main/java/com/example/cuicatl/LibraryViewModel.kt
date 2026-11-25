@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
  */
 class LibraryViewModel : ViewModel() {
     val mp3 = MutableLiveData<List<Song>>(emptyList())
-    val otros = MutableLiveData<List<Song>>(emptyList())
+    val videos = MutableLiveData<List<VideoItem>>(emptyList())
 
     /** Texto de búsqueda actual (sirve para decir "Sin resultados" o "Sin archivos"). */
     var consulta: String = ""

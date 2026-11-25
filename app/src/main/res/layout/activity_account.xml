@@ -151,6 +151,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button
+                android:id="@+id/btnOlvide"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/acct_forgot"
+                android:textColor="@color/text_dark" />
+
+            <Button
                 android:id="@+id/btnAccion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -203,10 +212,20 @@
                 android:id="@+id/btnCerrarSesion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:backgroundTint="@color/accent"
                 android:text="@string/acct_btn_logout"
                 android:textColor="@color/on_accent" />
+
+            <Button
+                android:id="@+id/btnEditarPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="@color/chip_bg"
+                android:text="@string/acct_edit_profile"
+                android:textColor="@color/text_dark" />
+
         </LinearLayout>
 
         <TextView
